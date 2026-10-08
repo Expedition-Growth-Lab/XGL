@@ -1,0 +1,41 @@
+---
+const streams = [
+  'Event Calendar',
+  'Field Signal',
+  'Regulatory Watch',
+  'Public Lands Watch',
+  'Builder Intelligence',
+  'Industry Headlines'
+];
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Expedition Growth Lab | Command Central</title>
+    <meta name="description" content="Command Central from Expedition Growth Lab: event intelligence, regulatory watch, public lands signals, builder intelligence, and industry headlines." />
+    <style>
+      :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f6f7f9; }
+      body { margin:0; min-height:100vh; }
+      main { max-width:1200px; margin:auto; padding:4rem 1.5rem; }
+      .eyebrow { text-transform:uppercase; letter-spacing:.18em; opacity:.7; font-size:.8rem; }
+      h1 { font-size:clamp(3rem,8vw,7rem); line-height:.9; margin:.5rem 0 1rem; }
+      .lead { max-width:760px; font-size:1.15rem; line-height:1.6; opacity:.85; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1rem; margin-top:3rem; }
+      .card { border:1px solid #2a3340; border-radius:18px; padding:1.25rem; background:#141a22; }
+      .card strong { display:block; font-size:1.1rem; margin-bottom:.5rem; }
+      .status { margin-top:3rem; padding:1rem 1.25rem; border-radius:14px; background:#172318; border:1px solid #335337; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Expedition Growth Lab</div>
+      <h1>Command Central</h1>
+      <p class="lead">A live intelligence hub for the people building, outfitting, operating, and protecting the overland and expedition world.</p>
+      <div class="grid">
+        {streams.map((stream) => <div class="card"><strong>{stream}</strong><span>Framework live. Data pipeline and editorial controls are being connected.</span></div>)}
+      </div>
+      <div class="status"><strong>System status:</strong> backend foundation live; public data and editorial room integration in progress.</div>
+    </main>
+  </body>
+</html>
