@@ -131,7 +131,7 @@ const signalLines = signals?.length
       .topbar-inner {
         min-height:76px;
         display:grid;
-        grid-template-columns:auto 1fr auto;
+        grid-template-columns:minmax(250px,auto) 1fr auto;
         gap:22px;
         align-items:center;
       }
@@ -139,31 +139,21 @@ const signalLines = signals?.length
       .brand {
         display:flex;
         align-items:center;
-        gap:.8rem;
         text-decoration:none;
-        color:#fff;
-        font-weight:900;
-        letter-spacing:.01em;
+        min-width:250px;
       }
 
-      .brand-xgl {
-        font-size:1.45rem;
-        letter-spacing:.06em;
-        font-weight:950;
-        color:#fff;
-      }
-
-      .brand-name {
-        font-size:.78rem;
-        color:#c9c5be;
-        text-transform:uppercase;
-        letter-spacing:.14em;
-        font-weight:800;
+      .brand-logo {
+        display:block;
+        width:min(360px,34vw);
+        height:auto;
+        filter:invert(1) brightness(1.08) contrast(1.04);
+        mix-blend-mode:screen;
       }
 
       nav {
         display:flex;
-        justify-content:center;
+        justify-content:flex-end;
         gap:24px;
         align-items:center;
         flex-wrap:wrap;
@@ -179,20 +169,38 @@ const signalLines = signals?.length
 
       nav a:hover { color:#fff; }
 
-      .nav-cta {
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        min-height:46px;
-        padding:0 20px;
+      .site-menu { display:none; position:relative; justify-self:end; }
+      .site-menu summary {
+        cursor:pointer;
+        list-style:none;
+        border:1px solid rgba(255,255,255,.16);
         border-radius:999px;
-        border:1px solid rgba(240,90,40,.8);
-        background:linear-gradient(180deg,var(--orange2),var(--orange));
-        color:#fff;
-        text-decoration:none;
-        font-weight:900;
-        box-shadow:0 14px 30px rgba(240,90,40,.18);
+        padding:.55rem .85rem;
+        font-weight:800;
+        color:#e6e1d9;
       }
+      .site-menu summary::-webkit-details-marker { display:none; }
+      .site-menu-panel {
+        position:absolute;
+        right:0;
+        top:calc(100% + 10px);
+        min-width:210px;
+        padding:.65rem;
+        border-radius:14px;
+        background:rgba(10,11,13,.98);
+        border:1px solid rgba(255,255,255,.12);
+        box-shadow:0 24px 60px rgba(0,0,0,.45);
+        display:grid;
+        gap:.2rem;
+      }
+      .site-menu-panel a {
+        padding:.7rem .8rem;
+        border-radius:9px;
+        color:#d7d1c8;
+        text-decoration:none;
+        font-weight:700;
+      }
+      .site-menu-panel a:hover { background:rgba(255,255,255,.06); color:#fff; }
 
       .signal-rail {
         border-bottom:1px solid var(--line-soft);
@@ -548,24 +556,68 @@ const signalLines = signals?.length
       .empty { display:none !important; }
 
       .site-footer {
-        margin-top:4.5rem;
-        padding:40px 0 64px;
+        margin-top:5rem;
+        padding:0 0 68px;
         color:#b7b0a6;
       }
 
       .footer-inner {
         border-top:1px solid rgba(255,255,255,.12);
-        padding-top:24px;
-        display:flex;
-        justify-content:space-between;
-        gap:24px;
-        flex-wrap:wrap;
+        padding-top:34px;
+        display:grid;
+        grid-template-columns:minmax(260px,.8fr) minmax(320px,1.2fr);
+        gap:48px;
+        align-items:end;
       }
 
-      .footer-title { color:#fff; font-weight:900; }
-      .footer-sub { margin-top:2px; color:#b7b0a6; }
-      .copyright { font-size:.78rem; color:#7d756e; margin-top:10px; max-width:720px; }
-      .footer-links { display:flex; gap:18px; flex-wrap:wrap; align-content:flex-start; }
+      .footer-brand-logo {
+        display:block;
+        width:min(390px,90%);
+        height:auto;
+        filter:invert(1) brightness(1.04) contrast(1.03);
+        mix-blend-mode:screen;
+        opacity:.92;
+      }
+
+      .footer-mission {
+        margin-top:18px;
+        color:#fff;
+        font-size:clamp(1.15rem,2vw,1.7rem);
+        font-weight:900;
+        letter-spacing:.01em;
+      }
+
+      .footer-mission span:first-child { color:var(--blue2); }
+      .footer-mission span:last-child { color:var(--orange2); }
+
+      .copyright {
+        font-size:.76rem;
+        color:#7d756e;
+        margin-top:14px;
+        max-width:620px;
+      }
+
+      .footer-right {
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end;
+        gap:18px;
+      }
+
+      .footer-kicker {
+        text-transform:uppercase;
+        letter-spacing:.14em;
+        font-size:.68rem;
+        color:#8f877e;
+        font-weight:900;
+      }
+
+      .footer-links {
+        display:flex;
+        justify-content:flex-end;
+        gap:18px;
+        flex-wrap:wrap;
+      }
       .footer-links a { color:#b7b0a6; text-decoration:none; }
       .footer-links a:hover { color:#fff; }
 
@@ -587,8 +639,12 @@ const signalLines = signals?.length
         .shell { width:min(100% - 24px,1480px); }
         .topbar-inner { min-height:64px; grid-template-columns:1fr auto; }
         nav { display:none; }
-        .brand-name { display:none; }
-        .nav-cta { min-height:40px; padding:0 15px; font-size:.78rem; }
+        .site-menu { display:block; }
+        .brand { min-width:0; }
+        .brand-logo { width:min(300px,68vw); }
+        .footer-inner { grid-template-columns:1fr; gap:28px; }
+        .footer-right { align-items:flex-start; }
+        .footer-links { justify-content:flex-start; }
         .signal-track { overflow-x:auto; scrollbar-width:none; }
         .hero { padding:5.2rem 0 3.2rem; }
         h1 { font-size:clamp(3.5rem,20vw,6rem); }
@@ -603,9 +659,8 @@ const signalLines = signals?.length
   <body>
     <header class="topbar">
       <div class="shell topbar-inner">
-        <a class="brand" href="/">
-          <span class="brand-xgl">XGL</span>
-          <span class="brand-name">Expedition Growth Lab</span>
+        <a class="brand" href="/" aria-label="Expedition Growth Lab home">
+          <img class="brand-logo" src="/assets/xgl-txt-logo.webp" alt="Expedition Growth Lab" />
         </a>
         <nav aria-label="Command Central">
           <a href="#events">Event Calendar</a>
@@ -613,7 +668,16 @@ const signalLines = signals?.length
           <a href="#field-signal">Field Signal</a>
           <a href="/command-central/login">Editorial Room</a>
         </nav>
-        <a class="nav-cta" href="https://plans.goxgl.com/get-your-growth-terrain-assessment">Start Assessment</a>
+        <details class="site-menu">
+          <summary>Menu</summary>
+          <div class="site-menu-panel">
+            <a href="/">XGL Home</a>
+            <a href="#events">Event Calendar</a>
+            <a href="#watch">Watch List</a>
+            <a href="#field-signal">Field Signal</a>
+            <a href="/command-central/login">Editorial Room</a>
+          </div>
+        </details>
       </div>
     </header>
 
@@ -763,15 +827,20 @@ const signalLines = signals?.length
         <footer class="site-footer">
           <div class="footer-inner">
             <div>
-              <div class="footer-title">Expedition Growth Lab</div>
-              <div class="footer-sub">Systems · Strategy · Scale</div>
-              <div class="copyright">© 2026 Expedition Growth Lab. Protect the Build. Grow the Legacy.</div>
+              <img class="footer-brand-logo" src="/assets/xgl-txt-logo.webp" alt="Expedition Growth Lab" />
+              <div class="footer-mission"><span>Protect the Build.</span> <span>Grow the Legacy.</span></div>
+              <div class="copyright">© 2026 Expedition Growth Lab. All rights reserved.</div>
             </div>
-            <div class="footer-links">
-              <a href="/command-central">Command Central</a>
-              <a href="https://plans.goxgl.com/get-your-growth-terrain-assessment">Growth Terrain Assessment</a>
-              <a href="mailto:hello@goxgl.com">hello@goxgl.com</a>
-              <a href="tel:15412362252">541.236.2252</a>
+            <div class="footer-right">
+              <div class="footer-kicker">Command Central · Expedition Growth Lab</div>
+              <div class="footer-links">
+                <a href="#events">Event Calendar</a>
+                <a href="#watch">Watch List</a>
+                <a href="#field-signal">Field Signal</a>
+                <a href="/command-central/login">Editorial Room</a>
+                <a href="mailto:hello@goxgl.com">hello@goxgl.com</a>
+                <a href="tel:15412362252">541.236.2252</a>
+              </div>
             </div>
           </div>
         </footer>
