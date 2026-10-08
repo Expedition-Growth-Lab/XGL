@@ -227,7 +227,7 @@
         watchStatus.textContent = 'Checking official sources…';
 
         const { data, error } = await supabase.functions.invoke('command-central-source-check', {
-          body: { limit: 20 }
+          body: { limit: 50 }
         });
 
         runSourceCheck.disabled = false;
