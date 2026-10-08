@@ -15,6 +15,12 @@
       h1 { margin:.25rem 0; font-size:clamp(2.4rem,5vw,4.5rem); letter-spacing:-.04em; }
       .eyebrow { text-transform:uppercase; letter-spacing:.16em; color:#8090a4; font-size:.75rem; }
       .muted { color:#97a6b8; }
+      .watchbar { margin:0 0 1.25rem; padding:1rem; border:1px solid #2a3545; border-radius:14px; background:#111821; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+      .watch-copy { display:flex; flex-direction:column; gap:.25rem; }
+      .watch-title { font-weight:800; }
+      .watch-stats { color:#91a0b1; font-size:.82rem; }
+      .watch-actions { display:flex; gap:.55rem; align-items:center; flex-wrap:wrap; }
+      .watch-status { color:#9fc7a5; font-size:.82rem; min-width:180px; }
       .toolbar { display:flex; gap:.65rem; flex-wrap:wrap; margin:1rem 0 1.5rem; }
       button { border:1px solid #3a4657; background:#171e27; color:#eef2f6; border-radius:10px; padding:.65rem .85rem; cursor:pointer; font-weight:700; }
       button.primary { background:#edf1f6; color:#10161d; border-color:#edf1f6; }
@@ -48,6 +54,16 @@
       <div id="denied" class="state hidden">This account is signed in but is not authorized for the XGL Editorial Room.</div>
 
       <section id="app" class="hidden">
+        <div class="watchbar">
+          <div class="watch-copy">
+            <div class="watch-title">Source Watch</div>
+            <div id="watch-stats" class="watch-stats">Loading source health…</div>
+          </div>
+          <div class="watch-actions">
+            <span id="watch-status" class="watch-status"></span>
+            <button id="run-source-check">Run source check</button>
+          </div>
+        </div>
         <div class="toolbar">
           <button data-filter="all" class="primary">All</button>
           <button data-filter="intelligence">Editorial Queue</button>
@@ -68,6 +84,9 @@
       const queue = document.querySelector('#queue');
       const signOut = document.querySelector('#sign-out');
       const refresh = document.querySelector('#refresh');
+      const runSourceCheck = document.querySelector('#run-source-check');
+      const watchStats = document.querySelector('#watch-stats');
+      const watchStatus = document.querySelector('#watch-status');
       let activeFilter = 'all';
       let records = [];
 
@@ -113,6 +132,21 @@
         `).join('');
       }
 
+      async function loadWatchStatus() {
+        const { data, error } = await supabase.rpc('source_watch_status');
+        if (error || !data) {
+          watchStats.textContent = 'Source health unavailable.';
+          return;
+        }
+
+        const last = data.last_checked_at
+          ? new Date(data.last_checked_at).toLocaleString()
+          : 'Not checked yet';
+
+        watchStats.textContent =
+          `${data.active_sources} active sources · ${data.checks_24h} checks / 24h · ${data.changes_24h} changes · ${data.errors_24h} errors · Last run: ${last}`;
+      }
+
       async function loadData() {
         const { data: payload, error } = await supabase.rpc('editorial_queue');
 
@@ -151,7 +185,7 @@
         }
         loading.classList.add('hidden');
         app.classList.remove('hidden');
-        await loadData();
+        await Promise.all([loadData(), loadWatchStatus()]);
       }
 
       queue?.addEventListener('click', async (event) => {
@@ -188,7 +222,28 @@
         });
       });
 
-      refresh?.addEventListener('click', loadData);
+      runSourceCheck?.addEventListener('click', async () => {
+        runSourceCheck.disabled = true;
+        watchStatus.textContent = 'Checking official sources…';
+
+        const { data, error } = await supabase.functions.invoke('command-central-source-check', {
+          body: { limit: 20 }
+        });
+
+        runSourceCheck.disabled = false;
+
+        if (error) {
+          watchStatus.textContent = 'Source check failed.';
+          return;
+        }
+
+        watchStatus.textContent = `Checked ${data.checked}. ${data.changed} changed. ${data.errors} errors.`;
+        await Promise.all([loadData(), loadWatchStatus()]);
+      });
+
+      refresh?.addEventListener('click', async () => {
+        await Promise.all([loadData(), loadWatchStatus()]);
+      });
       signOut?.addEventListener('click', async () => {
         await supabase.auth.signOut();
         window.location.replace('/command-central/login');
