@@ -2,125 +2,776 @@
 import { createPublicClient } from '../../lib/supabase';
 
 const supabase = createPublicClient();
-const { data: events, error } = await supabase
-  .from('events')
-  .select('id,slug,name,start_date,end_date,date_status,city,state,region,event_type,primary_audience,xgl_priority,exhibitor_opportunity,registration_state,official_url,public_summary,xgl_relevance')
-  .eq('publication_status', 'published')
-  .order('start_date', { ascending: true, nullsFirst: false });
+
+const [{ data: events, error }, { data: signals }] = await Promise.all([
+  supabase
+    .from('events')
+    .select('id,slug,name,start_date,end_date,date_status,city,state,region,event_type,primary_audience,xgl_priority,exhibitor_opportunity,registration_state,official_url,public_summary,xgl_relevance')
+    .eq('publication_status', 'published')
+    .order('start_date', { ascending: true, nullsFirst: false }),
+  supabase
+    .from('intelligence_items')
+    .select('id,headline,stream,urgency,published_at')
+    .eq('editorial_status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(5)
+]);
 
 const rows = events ?? [];
 const confirmed = rows.filter((event) => event.date_status === 'confirmed');
 const tba = rows.filter((event) => event.date_status === 'dates_tba');
+const critical = confirmed.filter((event) => event.xgl_priority === 'critical');
+const nextCritical = critical[0];
+const nextEvent = confirmed[0];
 
 const formatDate = (value?: string | null) =>
-  value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value + 'T12:00:00Z')) : 'TBA';
+  value
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        .format(new Date(value + 'T12:00:00Z'))
+    : 'TBA';
+
+const shortDate = (value?: string | null) =>
+  value
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+        .format(new Date(value + 'T12:00:00Z'))
+    : 'TBA';
+
+const fallbackSignals = [
+  nextEvent ? `Next on the terrain: ${nextEvent.name} — ${shortDate(nextEvent.start_date)}` : null,
+  nextCritical ? `Critical watch: ${nextCritical.name}` : null,
+  `${confirmed.length} confirmed dates now tracked`,
+  `${tba.length} recurring events under active date watch`
+].filter(Boolean);
+
+const signalLines = signals?.length
+  ? signals.map((item) => item.headline)
+  : fallbackSignals;
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Command Central | Expedition Growth Lab</title>
-    <meta name="description" content="Command Central event intelligence from Expedition Growth Lab." />
+    <meta
+      name="description"
+      content="Command Central by Expedition Growth Lab: event intelligence, field signals, regulatory watch, public lands watch, and builder intelligence."
+    />
     <style>
-      :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f7f8fa; }
+      :root {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color:#edf1f4;
+        background:#0c1115;
+        --ink:#0c1115;
+        --panel:#12191f;
+        --panel-2:#151e25;
+        --line:#2b3943;
+        --line-soft:rgba(188,199,204,.14);
+        --text:#edf1f4;
+        --muted:#9aa8af;
+        --sand:#d7c7a3;
+        --moss:#9fac8f;
+        --signal:#d8b879;
+        --critical:#d48c7f;
+      }
+
       * { box-sizing:border-box; }
-      body { margin:0; background:radial-gradient(circle at top right,#18202b 0,#0d1117 42%); min-height:100vh; }
+      html { scroll-behavior:smooth; }
+      body {
+        margin:0;
+        min-height:100vh;
+        color:var(--text);
+        background:
+          radial-gradient(circle at 72% -10%, rgba(104,123,116,.18), transparent 33rem),
+          linear-gradient(180deg, #10161b 0%, #0c1115 34rem, #0b1014 100%);
+      }
+
+      body::before {
+        content:"";
+        position:fixed;
+        inset:0;
+        z-index:-2;
+        pointer-events:none;
+        opacity:.34;
+        background-image:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='560' viewBox='0 0 900 560'%3E%3Cg fill='none' stroke='%23c9c2ae' stroke-opacity='.26' stroke-width='1.2'%3E%3Cpath d='M-30 102C105 18 188 34 286 82s205 55 315-13 214-60 330 7'/%3E%3Cpath d='M-50 132C78 51 177 63 276 112s214 53 324-16 223-55 341 20'/%3E%3Cpath d='M-60 167C63 89 164 93 270 143s224 52 332-17 222-46 352 33'/%3E%3Cpath d='M-70 203C55 127 151 125 262 176s228 50 342-18 231-41 362 42'/%3E%3Cpath d='M-80 245C51 165 148 164 259 216s233 49 349-21 235-29 367 58'/%3E%3Cpath d='M-92 292C41 210 145 205 256 257s239 48 358-22 241-18 370 72'/%3E%3Cpath d='M-100 342C35 257 141 250 253 303s243 48 364-23 250-7 379 84'/%3E%3Cpath d='M-110 397C26 311 137 301 251 354s247 46 370-24 257 4 385 96'/%3E%3Cpath d='M-120 454C16 369 134 355 250 408s252 45 377-25 263 15 391 108'/%3E%3C/g%3E%3C/svg%3E");
+        background-size:900px 560px;
+        background-position:50% 0;
+        filter:blur(.15px);
+        mask-image:linear-gradient(to bottom, #000 0%, rgba(0,0,0,.72) 38rem, transparent 80rem);
+      }
+
+      body::after {
+        content:"";
+        position:fixed;
+        inset:0;
+        z-index:-1;
+        pointer-events:none;
+        background:
+          linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+          linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px);
+        background-size:44px 44px;
+        mask-image:linear-gradient(to bottom, rgba(0,0,0,.7), transparent 60rem);
+      }
+
       a { color:inherit; }
-      main { max-width:1280px; margin:auto; padding:3rem 1.25rem 5rem; }
-      .eyebrow { text-transform:uppercase; letter-spacing:.18em; opacity:.62; font-size:.78rem; }
-      h1 { font-size:clamp(3.5rem,9vw,7.5rem); line-height:.86; margin:.55rem 0 1rem; letter-spacing:-.055em; }
-      .lead { max-width:820px; font-size:1.15rem; line-height:1.65; color:#bdc7d4; }
-      .metrics { display:flex; flex-wrap:wrap; gap:.75rem; margin:2rem 0 3rem; }
-      .metric { border:1px solid #273140; background:#121820; padding:.8rem 1rem; border-radius:999px; }
-      .metric b { margin-right:.4rem; }
-      .section-head { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin:3rem 0 1rem; }
-      h2 { font-size:2rem; margin:0; }
-      .muted { color:#91a0b1; }
-      .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; }
-      .card { background:#141a22; border:1px solid #283343; border-radius:18px; padding:1.15rem; display:flex; flex-direction:column; gap:.8rem; }
-      .date { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#9eb0c6; }
-      .card h3 { margin:0; font-size:1.25rem; line-height:1.2; }
-      .meta { display:flex; flex-wrap:wrap; gap:.45rem; }
-      .tag { font-size:.78rem; border:1px solid #334155; border-radius:999px; padding:.35rem .55rem; color:#b8c5d4; }
-      .priority-critical { border-color:#784f4f; color:#ffd1d1; }
-      .summary { color:#bac4cf; line-height:1.5; flex:1; }
-      .why { padding:.75rem; border-radius:12px; background:#11161c; color:#aab6c4; font-size:.9rem; line-height:1.45; }
-      .actions { display:flex; gap:.65rem; flex-wrap:wrap; }
-      .button { display:inline-block; text-decoration:none; padding:.65rem .85rem; border-radius:10px; background:#e9edf3; color:#111820; font-weight:700; font-size:.9rem; }
-      .button.secondary { background:transparent; color:#d9e2ed; border:1px solid #3a4657; }
-      .tba { border-style:dashed; }
-      .error { padding:1rem; border:1px solid #6d3b3b; border-radius:12px; background:#241515; }
+
+      .shell { width:min(1480px, calc(100% - 36px)); margin:0 auto; }
+
+      .topbar {
+        position:sticky;
+        top:0;
+        z-index:20;
+        backdrop-filter:blur(18px);
+        background:rgba(10,15,19,.78);
+        border-bottom:1px solid var(--line-soft);
+      }
+
+      .topbar-inner {
+        min-height:64px;
+        display:flex;
+        align-items:center;
+        gap:1rem;
+        justify-content:space-between;
+      }
+
+      .brand {
+        display:flex;
+        align-items:center;
+        gap:.8rem;
+        text-decoration:none;
+        font-weight:760;
+        letter-spacing:.01em;
+      }
+
+      .brand-mark {
+        width:30px;
+        aspect-ratio:1;
+        border:1px solid rgba(215,199,163,.62);
+        border-radius:50%;
+        position:relative;
+      }
+
+      .brand-mark::before,
+      .brand-mark::after {
+        content:"";
+        position:absolute;
+        left:5px;
+        right:5px;
+        border-top:1px solid rgba(215,199,163,.72);
+        border-radius:50%;
+      }
+
+      .brand-mark::before { top:10px; transform:rotate(-10deg); }
+      .brand-mark::after { top:16px; transform:rotate(12deg); }
+
+      nav {
+        display:flex;
+        gap:.25rem;
+        align-items:center;
+        flex-wrap:wrap;
+      }
+
+      nav a {
+        text-decoration:none;
+        font-size:.78rem;
+        color:#a9b4b9;
+        padding:.55rem .65rem;
+        border-radius:8px;
+      }
+
+      nav a:hover { background:rgba(255,255,255,.045); color:#fff; }
+      nav .editorial { border:1px solid rgba(215,199,163,.28); color:#d7c7a3; }
+
+      .signal-rail {
+        border-bottom:1px solid var(--line-soft);
+        background:rgba(10,15,19,.56);
+        overflow:hidden;
+      }
+
+      .signal-inner {
+        min-height:39px;
+        display:flex;
+        align-items:center;
+        gap:1rem;
+        white-space:nowrap;
+        overflow:hidden;
+      }
+
+      .signal-label {
+        color:var(--signal);
+        text-transform:uppercase;
+        letter-spacing:.16em;
+        font-weight:800;
+        font-size:.67rem;
+        flex:0 0 auto;
+      }
+
+      .signal-track {
+        display:flex;
+        align-items:center;
+        gap:1rem;
+        min-width:0;
+        overflow:hidden;
+        color:#aeb9bd;
+        font-size:.78rem;
+      }
+
+      .signal-item { overflow:hidden; text-overflow:ellipsis; }
+      .signal-dot { color:#607079; }
+
+      .hero {
+        min-height:570px;
+        padding:7rem 0 4.5rem;
+        display:grid;
+        grid-template-columns:minmax(0,1.5fr) minmax(290px,.55fr);
+        gap:4rem;
+        align-items:end;
+        border-bottom:1px solid var(--line-soft);
+      }
+
+      .kicker {
+        display:flex;
+        align-items:center;
+        gap:.65rem;
+        text-transform:uppercase;
+        letter-spacing:.19em;
+        font-size:.69rem;
+        color:#a5b0b4;
+        font-weight:760;
+      }
+
+      .kicker::before {
+        content:"";
+        width:36px;
+        border-top:1px solid var(--sand);
+      }
+
+      h1 {
+        max-width:1050px;
+        margin:.8rem 0 1.25rem;
+        font-size:clamp(4rem,9vw,8.6rem);
+        line-height:.82;
+        letter-spacing:-.068em;
+        font-weight:760;
+      }
+
+      .lead {
+        max-width:830px;
+        color:#bec7ca;
+        font-size:clamp(1rem,1.5vw,1.22rem);
+        line-height:1.65;
+      }
+
+      .mission {
+        margin-top:2rem;
+        color:var(--sand);
+        font-size:.86rem;
+        text-transform:uppercase;
+        letter-spacing:.12em;
+        font-weight:800;
+      }
+
+      .hero-panel {
+        border-left:1px solid rgba(215,199,163,.28);
+        padding-left:1.4rem;
+        margin-bottom:.5rem;
+      }
+
+      .hero-panel .label {
+        color:#788990;
+        font-size:.68rem;
+        text-transform:uppercase;
+        letter-spacing:.16em;
+        margin-bottom:.8rem;
+      }
+
+      .hero-stat {
+        display:flex;
+        justify-content:space-between;
+        align-items:baseline;
+        gap:1rem;
+        padding:.78rem 0;
+        border-bottom:1px solid rgba(255,255,255,.07);
+      }
+
+      .hero-stat strong { font-size:1.6rem; font-weight:650; }
+      .hero-stat span { color:#96a4aa; font-size:.8rem; text-align:right; }
+
+      .content { padding:3.8rem 0 7rem; }
+
+      .section-head {
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:2rem;
+        align-items:end;
+        margin-bottom:1.4rem;
+      }
+
+      .section-index {
+        font-size:.68rem;
+        color:#73828a;
+        letter-spacing:.15em;
+        text-transform:uppercase;
+        margin-bottom:.55rem;
+      }
+
+      h2 {
+        margin:0;
+        font-size:clamp(2.15rem,4vw,4rem);
+        letter-spacing:-.045em;
+        line-height:.98;
+        font-weight:650;
+      }
+
+      .section-note {
+        max-width:340px;
+        color:#8c9aa0;
+        font-size:.84rem;
+        line-height:1.5;
+        text-align:right;
+      }
+
+      .filterbar {
+        display:flex;
+        align-items:center;
+        gap:.55rem;
+        flex-wrap:wrap;
+        padding:1rem 0 1.4rem;
+        border-top:1px solid rgba(255,255,255,.07);
+      }
+
+      .filterbar input {
+        margin-left:auto;
+        min-width:240px;
+        background:rgba(9,14,18,.72);
+        color:#e8edef;
+        border:1px solid #2d3a43;
+        padding:.67rem .8rem;
+        border-radius:7px;
+        outline:none;
+      }
+
+      .filter {
+        appearance:none;
+        border:1px solid #31404a;
+        background:#11181e;
+        color:#aeb9be;
+        padding:.58rem .72rem;
+        border-radius:7px;
+        font:inherit;
+        font-size:.76rem;
+        cursor:pointer;
+      }
+
+      .filter.active,
+      .filter:hover {
+        color:#151b1f;
+        background:var(--sand);
+        border-color:var(--sand);
+      }
+
+      .grid {
+        display:grid;
+        grid-template-columns:repeat(12,minmax(0,1fr));
+        gap:1rem;
+      }
+
+      .card {
+        grid-column:span 4;
+        min-height:360px;
+        position:relative;
+        display:flex;
+        flex-direction:column;
+        background:linear-gradient(180deg, rgba(20,29,35,.92), rgba(14,21,26,.96));
+        border:1px solid #293740;
+        border-radius:10px;
+        overflow:hidden;
+        transition:transform .18s ease,border-color .18s ease,background .18s ease;
+      }
+
+      .card:hover {
+        transform:translateY(-3px);
+        border-color:#4d5e66;
+        background:linear-gradient(180deg, rgba(24,34,41,.96), rgba(15,23,28,.98));
+      }
+
+      .card::before {
+        content:"";
+        position:absolute;
+        inset:0 auto 0 0;
+        width:3px;
+        background:#4f5f65;
+      }
+
+      .card[data-priority="critical"]::before { background:var(--critical); }
+      .card[data-priority="high"]::before { background:var(--signal); }
+
+      .card-top {
+        display:grid;
+        grid-template-columns:104px 1fr;
+        border-bottom:1px solid rgba(255,255,255,.07);
+      }
+
+      .date-block {
+        padding:1rem .9rem;
+        background:rgba(7,11,14,.34);
+        border-right:1px solid rgba(255,255,255,.07);
+      }
+
+      .date-block .month {
+        text-transform:uppercase;
+        letter-spacing:.14em;
+        font-size:.62rem;
+        color:#788890;
+      }
+
+      .date-block .day {
+        margin-top:.15rem;
+        font-size:1.2rem;
+        color:#d8dfdf;
+        font-weight:700;
+      }
+
+      .title-block { padding:1rem 1rem .9rem; }
+
+      .card h3 {
+        margin:.1rem 0 .25rem;
+        font-size:1.16rem;
+        line-height:1.24;
+        letter-spacing:-.018em;
+      }
+
+      .location {
+        color:#87969d;
+        font-size:.77rem;
+      }
+
+      .card-body {
+        padding:1rem;
+        display:flex;
+        flex:1;
+        flex-direction:column;
+      }
+
+      .meta {
+        display:flex;
+        flex-wrap:wrap;
+        gap:.35rem;
+        margin-bottom:.8rem;
+      }
+
+      .tag {
+        font-size:.67rem;
+        line-height:1;
+        border:1px solid #33424b;
+        border-radius:999px;
+        padding:.38rem .5rem;
+        color:#9fadb3;
+        background:rgba(7,11,14,.16);
+      }
+
+      .priority-critical {
+        border-color:rgba(212,140,127,.5);
+        color:#dda89f;
+      }
+
+      .summary {
+        color:#b0bcc0;
+        line-height:1.52;
+        font-size:.88rem;
+        margin-bottom:1rem;
+      }
+
+      .why {
+        margin-top:auto;
+        border-top:1px solid rgba(255,255,255,.07);
+        padding-top:.8rem;
+        color:#8f9da3;
+        font-size:.78rem;
+        line-height:1.5;
+      }
+
+      .why strong {
+        color:#c5cfce;
+        text-transform:uppercase;
+        letter-spacing:.07em;
+        font-size:.66rem;
+        display:block;
+        margin-bottom:.2rem;
+      }
+
+      .actions {
+        display:flex;
+        gap:.55rem;
+        flex-wrap:wrap;
+        padding:0 1rem 1rem;
+      }
+
+      .button {
+        text-decoration:none;
+        padding:.62rem .75rem;
+        border-radius:6px;
+        border:1px solid #394951;
+        color:#c4ced1;
+        font-weight:700;
+        font-size:.72rem;
+        transition:.15s ease;
+      }
+
+      .button:hover { background:#d7c7a3; border-color:#d7c7a3; color:#14191c; }
+      .button.primary { background:#d7c7a3; border-color:#d7c7a3; color:#14191c; }
+      .button.primary:hover { background:#e1d4b7; }
+
+      .watch-section {
+        margin-top:5.5rem;
+        padding-top:3.5rem;
+        border-top:1px solid var(--line-soft);
+      }
+
+      .tba {
+        min-height:270px;
+        border-style:dashed;
+      }
+
+      .empty { display:none !important; }
+
+      .footnote {
+        margin-top:3.5rem;
+        padding-top:1.3rem;
+        border-top:1px solid rgba(255,255,255,.07);
+        display:flex;
+        justify-content:space-between;
+        gap:2rem;
+        color:#718087;
+        font-size:.74rem;
+      }
+
+      .error {
+        padding:1rem;
+        border:1px solid #6d3b3b;
+        border-radius:8px;
+        background:#241515;
+        margin:1rem 0;
+      }
+
+      @media (max-width:1100px) {
+        .hero { grid-template-columns:1fr; gap:2rem; min-height:auto; }
+        .hero-panel { max-width:520px; }
+        .card { grid-column:span 6; }
+      }
+
+      @media (max-width:760px) {
+        .shell { width:min(100% - 24px,1480px); }
+        .topbar-inner { min-height:58px; }
+        nav a:not(.editorial) { display:none; }
+        .signal-track { overflow-x:auto; scrollbar-width:none; }
+        .hero { padding:5.2rem 0 3.2rem; }
+        h1 { font-size:clamp(3.5rem,20vw,6rem); }
+        .section-head { grid-template-columns:1fr; }
+        .section-note { text-align:left; }
+        .filterbar input { width:100%; min-width:0; margin-left:0; order:10; }
+        .card { grid-column:span 12; }
+        .footnote { flex-direction:column; }
+      }
     </style>
   </head>
   <body>
-    <main>
-      <div class="eyebrow">Expedition Growth Lab</div>
-      <h1>Command Central</h1>
-      <p class="lead">Live terrain intelligence for the builders, outfitters, fabricators, dealers, travelers, and independent operators who make the expedition world move.</p>
-
-      <div class="metrics">
-        <div class="metric"><b>{rows.length}</b> tracked events</div>
-        <div class="metric"><b>{confirmed.length}</b> confirmed dates</div>
-        <div class="metric"><b>{tba.length}</b> verified / dates TBA</div>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Expedition Growth Lab</span>
+        </a>
+        <nav aria-label="Command Central">
+          <a href="#events">Event Calendar</a>
+          <a href="#watch">Watch List</a>
+          <a href="#field-signal">Field Signal</a>
+          <a href="/command-central/login" class="editorial">Editorial Room</a>
+        </nav>
       </div>
+    </header>
 
-      {error ? <div class="error">Command Central data is temporarily unavailable.</div> : null}
-
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">Event Calendar</div>
-          <h2>Where the industry is gathering</h2>
+    <div class="signal-rail" id="field-signal">
+      <div class="shell signal-inner">
+        <span class="signal-label">Field Signal</span>
+        <div class="signal-track">
+          {signalLines.map((line, index) => (
+            <>
+              {index > 0 ? <span class="signal-dot">◆</span> : null}
+              <span class="signal-item">{line}</span>
+            </>
+          ))}
         </div>
-        <span class="muted">Verified against official sources</span>
       </div>
+    </div>
 
-      <div class="grid">
-        {confirmed.map((event) => (
-          <article class="card">
-            <div class="date">{formatDate(event.start_date)}{event.end_date && event.end_date !== event.start_date ? ` — ${formatDate(event.end_date)}` : ''}</div>
-            <h3>{event.name}</h3>
-            <div class="meta">
-              {event.city ? <span class="tag">{event.city}{event.state ? `, ${event.state}` : ''}</span> : null}
-              {event.event_type ? <span class="tag">{event.event_type}</span> : null}
-              {event.region ? <span class="tag">{event.region}</span> : null}
-              {event.xgl_priority === 'critical' ? <span class="tag priority-critical">XGL Priority: Critical</span> : null}
-            </div>
-            <div class="summary">{event.public_summary}</div>
-            {event.xgl_relevance ? <div class="why"><strong>Why XGL cares:</strong> {event.xgl_relevance}</div> : null}
-            <div class="actions">
-              {event.official_url ? <a class="button" href={event.official_url} target="_blank" rel="noreferrer">Official event</a> : null}
-              <a class="button secondary" href="/contact">Need exhibit help?</a>
-            </div>
-          </article>
-        ))}
-      </div>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <div class="kicker">Operational intelligence for independent builders</div>
+          <h1>Command<br />Central</h1>
+          <p class="lead">
+            A living map of the events, deadlines, regulatory shifts, public-land signals, builder movement,
+            and industry terrain that matter to the people actually making things.
+          </p>
+          <div class="mission">Protect the Build. Grow the Legacy.</div>
+        </div>
 
-      {tba.length ? (
-        <>
-          <div class="section-head">
-            <div>
-              <div class="eyebrow">Watch List</div>
-              <h2>Confirmed recurring events, dates pending</h2>
-            </div>
+        <aside class="hero-panel" aria-label="Command Central status">
+          <div class="label">Current terrain</div>
+          <div class="hero-stat"><strong>{rows.length}</strong><span>tracked events</span></div>
+          <div class="hero-stat"><strong>{confirmed.length}</strong><span>confirmed dates</span></div>
+          <div class="hero-stat"><strong>{critical.length}</strong><span>critical XGL priorities</span></div>
+          <div class="hero-stat"><strong>{tba.length}</strong><span>dates under watch</span></div>
+        </aside>
+      </section>
+
+      <section class="content" id="events">
+        {error ? <div class="error">Command Central data is temporarily unavailable.</div> : null}
+
+        <div class="section-head">
+          <div>
+            <div class="section-index">01 / Event Calendar</div>
+            <h2>Where the industry is gathering.</h2>
           </div>
-          <div class="grid">
-            {tba.map((event) => (
-              <article class="card tba">
-                <div class="date">2027 date TBA</div>
-                <h3>{event.name}</h3>
+          <div class="section-note">
+            Official-source dates, XGL context, and exhibitor relevance. Unknown dates stay unknown until the source says otherwise.
+          </div>
+        </div>
+
+        <div class="filterbar" aria-label="Event filters">
+          <button class="filter active" data-filter="all">All terrain</button>
+          <button class="filter" data-filter="critical">Critical</button>
+          <button class="filter" data-filter="Pacific Northwest">PNW</button>
+          <button class="filter" data-filter="Mountain West">Mountain West</button>
+          <button class="filter" data-filter="West">West</button>
+          <button class="filter" data-filter="Southeast">Southeast</button>
+          <input id="event-search" type="search" placeholder="Search events, regions, types…" />
+        </div>
+
+        <div class="grid" id="event-grid">
+          {confirmed.map((event) => (
+            <article
+              class="card"
+              data-priority={event.xgl_priority}
+              data-region={event.region ?? ''}
+              data-search={`${event.name} ${event.city ?? ''} ${event.state ?? ''} ${event.region ?? ''} ${event.event_type ?? ''}`.toLowerCase()}
+            >
+              <div class="card-top">
+                <div class="date-block">
+                  <div class="month">{event.start_date ? shortDate(event.start_date).split(' ')[0] : 'TBA'}</div>
+                  <div class="day">{event.start_date ? shortDate(event.start_date).replace(/^\w+\s/,'') : '—'}</div>
+                </div>
+                <div class="title-block">
+                  <h3>{event.name}</h3>
+                  <div class="location">{event.city}{event.state ? `, ${event.state}` : ''}</div>
+                </div>
+              </div>
+
+              <div class="card-body">
                 <div class="meta">
-                  {event.city ? <span class="tag">{event.city}{event.state ? `, ${event.state}` : ''}</span> : null}
+                  {event.event_type ? <span class="tag">{event.event_type}</span> : null}
                   {event.region ? <span class="tag">{event.region}</span> : null}
+                  {event.xgl_priority === 'critical' ? <span class="tag priority-critical">Critical priority</span> : null}
                 </div>
+
                 <div class="summary">{event.public_summary}</div>
-                <div class="actions">
-                  {event.official_url ? <a class="button secondary" href={event.official_url} target="_blank" rel="noreferrer">Official source</a> : null}
-                </div>
-              </article>
-            ))}
-          </div>
-        </>
-      ) : null}
+
+                {event.xgl_relevance ? (
+                  <div class="why">
+                    <strong>Why XGL cares</strong>
+                    {event.xgl_relevance}
+                  </div>
+                ) : null}
+              </div>
+
+              <div class="actions">
+                {event.official_url ? <a class="button primary" href={event.official_url} target="_blank" rel="noreferrer">Official source</a> : null}
+                <a class="button" href="/contact">Exhibit with XGL</a>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {tba.length ? (
+          <section class="watch-section" id="watch">
+            <div class="section-head">
+              <div>
+                <div class="section-index">02 / Date Watch</div>
+                <h2>Recurring events. Dates still moving.</h2>
+              </div>
+              <div class="section-note">
+                We do not manufacture certainty. These stay on watch until their producers publish the date.
+              </div>
+            </div>
+
+            <div class="grid">
+              {tba.map((event) => (
+                <article class="card tba" data-priority={event.xgl_priority}>
+                  <div class="card-top">
+                    <div class="date-block">
+                      <div class="month">2027</div>
+                      <div class="day">TBA</div>
+                    </div>
+                    <div class="title-block">
+                      <h3>{event.name}</h3>
+                      <div class="location">{event.city}{event.state ? `, ${event.state}` : ''}</div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="meta">
+                      {event.region ? <span class="tag">{event.region}</span> : null}
+                      {event.event_type ? <span class="tag">{event.event_type}</span> : null}
+                    </div>
+                    <div class="summary">{event.public_summary}</div>
+                  </div>
+                  <div class="actions">
+                    {event.official_url ? <a class="button" href={event.official_url} target="_blank" rel="noreferrer">Watch official source</a> : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <div class="footnote">
+          <span>Command Central / Expedition Growth Lab</span>
+          <span>Official-source verification · Human editorial gate · Versioned publishing</span>
+        </div>
+      </section>
     </main>
+
+    <script>
+      const filters = Array.from(document.querySelectorAll('.filter'));
+      const cards = Array.from(document.querySelectorAll('#event-grid .card'));
+      const search = document.querySelector('#event-search');
+      let active = 'all';
+
+      function applyFilters() {
+        const query = (search?.value || '').trim().toLowerCase();
+
+        cards.forEach((card) => {
+          const matchesFilter =
+            active === 'all' ||
+            (active === 'critical' && card.dataset.priority === 'critical') ||
+            card.dataset.region === active;
+
+          const matchesSearch =
+            !query || (card.dataset.search || '').includes(query);
+
+          card.classList.toggle('empty', !(matchesFilter && matchesSearch));
+        });
+      }
+
+      filters.forEach((button) => {
+        button.addEventListener('click', () => {
+          active = button.dataset.filter || 'all';
+          filters.forEach((item) => item.classList.toggle('active', item === button));
+          applyFilters();
+        });
+      });
+
+      search?.addEventListener('input', applyFilters);
+    </script>
   </body>
 </html>
