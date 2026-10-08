@@ -809,8 +809,9 @@ const signalLines = signals?.length
               </div>
 
               <div class="actions">
-                {event.official_url ? <a class="button primary" href={event.official_url} target="_blank" rel="noreferrer">Official source</a> : null}
-                <a class="button" href="/contact">Exhibit with XGL</a>
+                <a class="button primary" href={`/command-central/events/${event.slug}`}>Event brief</a>
+                {event.official_url ? <a class="button" href={event.official_url} target="_blank" rel="noreferrer">Official source</a> : null}
+                <a class="button" href="mailto:hello@goxgl.com?subject=Event%20support%20request">Exhibit with XGL</a>
               </div>
             </article>
           ))}
@@ -849,6 +850,7 @@ const signalLines = signals?.length
                     <div class="summary">{event.public_summary}</div>
                   </div>
                   <div class="actions">
+                    <a class="button primary" href={`/command-central/events/${event.slug}`}>Event brief</a>
                     {event.official_url ? <a class="button" href={event.official_url} target="_blank" rel="noreferrer">Watch official source</a> : null}
                   </div>
                 </article>
