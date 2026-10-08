@@ -11,6 +11,6 @@
     "astro": "7.3.7",
     "@astrojs/cloudflare": "14.3.3",
     "@supabase/supabase-js": "2.117.3",
-    "@supabase/ssr": "0.7.0"
+    "@supabase/ssr": "0.12.7"
   }
 }
