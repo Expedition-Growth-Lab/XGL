@@ -1,0 +1,197 @@
+---
+import { createPublicClient } from '../../../lib/supabase';
+
+const supabase = createPublicClient();
+const { slug } = Astro.params;
+const { data: brief } = await supabase.rpc('public_event_brief', { event_slug: slug });
+
+if (!brief?.event) {
+  return new Response('Event not found', { status: 404 });
+}
+
+const event = brief.event;
+const producer = brief.producer;
+const deadlines = brief.deadlines ?? [];
+
+const formatDate = (value?: string | null) =>
+  value
+    ? new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        .format(new Date(value + 'T12:00:00Z'))
+    : 'Date TBA';
+
+const formatDeadline = (value?: string | null) =>
+  value
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        .format(new Date(value))
+    : 'Exact date pending';
+
+const dateLine = event.start_date
+  ? event.end_date && event.end_date !== event.start_date
+    ? `${formatDate(event.start_date)} — ${formatDate(event.end_date)}`
+    : formatDate(event.start_date)
+  : 'Dates TBA';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{event.name} | Command Central</title>
+    <meta name="description" content={event.public_summary ?? event.name} />
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <style>
+      :root {
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        --orange:#f05a28;
+        --orange2:#ff7a3f;
+        --blue:#1bb7ff;
+        --text:#edf1f4;
+        --muted:#91a0a8;
+        --line:rgba(255,255,255,.11);
+        background:#0d1013;
+        color:var(--text);
+      }
+      * { box-sizing:border-box; }
+      body {
+        margin:0;
+        min-height:100vh;
+        background:
+          radial-gradient(circle at 12% 0%,rgba(240,90,40,.14),transparent 28rem),
+          radial-gradient(circle at 88% 8%,rgba(27,183,255,.13),transparent 32rem),
+          linear-gradient(180deg,#080a0c,#101418 70%,#0b0e11);
+      }
+      a { color:inherit; }
+      .shell { width:min(1180px,calc(100% - 32px)); margin:auto; }
+      header {
+        position:sticky; top:0; z-index:20;
+        background:rgba(8,10,12,.86);
+        backdrop-filter:blur(16px);
+        border-bottom:1px solid var(--line);
+      }
+      .nav {
+        min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:1rem;
+      }
+      .logo { width:min(350px,45vw); filter:invert(1) brightness(1.05); }
+      .back {
+        text-decoration:none; color:#c9cfd2; font-weight:800; font-size:.82rem;
+        border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:.62rem .82rem;
+      }
+      main { padding:5.5rem 0 6rem; }
+      .eyebrow {
+        text-transform:uppercase; letter-spacing:.17em; color:#95a3aa; font-size:.7rem; font-weight:850;
+      }
+      h1 {
+        margin:.65rem 0 1rem; font-size:clamp(3rem,7vw,6.8rem); line-height:.9;
+        letter-spacing:-.055em; max-width:1000px;
+      }
+      .date { color:#f1c3a9; font-size:1.05rem; font-weight:800; margin-bottom:.7rem; }
+      .place { color:#9eb0b9; font-size:1rem; }
+      .summary {
+        max-width:850px; color:#c3ccd0; font-size:1.08rem; line-height:1.7; margin:2rem 0 3rem;
+      }
+      .layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr); gap:1.2rem; }
+      .panel {
+        background:linear-gradient(180deg,rgba(20,28,34,.94),rgba(14,20,25,.96));
+        border:1px solid #2b3941; border-radius:12px; padding:1.25rem;
+      }
+      .panel h2 { margin:0 0 1rem; font-size:1.1rem; }
+      .facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem; }
+      .fact { border-top:1px solid var(--line); padding-top:.7rem; }
+      .fact span { display:block; color:#73848c; text-transform:uppercase; letter-spacing:.12em; font-size:.62rem; }
+      .fact strong { display:block; margin-top:.3rem; color:#dbe2e4; line-height:1.35; }
+      .why { margin-top:1rem; color:#aebbc0; line-height:1.55; }
+      .why strong { display:block; color:#fff; margin-bottom:.25rem; }
+      .deadlines { display:grid; gap:.75rem; }
+      .deadline {
+        padding:.9rem; border:1px solid #32414a; border-radius:9px; background:#11171c;
+      }
+      .deadline.critical { border-left:3px solid #f07a5d; }
+      .deadline.high { border-left:3px solid #d8b879; }
+      .deadline-date { color:#f0c3a7; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+      .deadline-title { margin:.25rem 0; font-weight:850; }
+      .deadline-meta { color:#85969e; font-size:.75rem; text-transform:capitalize; }
+      .actions { display:flex; flex-wrap:wrap; gap:.7rem; margin-top:1.2rem; }
+      .button {
+        text-decoration:none; padding:.75rem .9rem; border-radius:7px; border:1px solid #3b4b54; font-weight:850; font-size:.8rem;
+      }
+      .button.primary { background:linear-gradient(180deg,var(--orange2),var(--orange)); border-color:var(--orange); color:#fff; }
+      footer {
+        margin-top:5rem; border-top:1px solid var(--line); padding-top:2rem;
+        display:flex; justify-content:space-between; gap:2rem; flex-wrap:wrap; color:#7e8a90; font-size:.76rem;
+      }
+      footer img { width:min(320px,70vw); filter:invert(1) brightness(1.02); opacity:.88; }
+      .tagline { margin-top:.65rem; color:#c7cdd0; font-weight:900; font-size:1rem; }
+      @media(max-width:850px){
+        .layout { grid-template-columns:1fr; }
+        .facts { grid-template-columns:1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="shell nav">
+        <a href="/command-central"><img class="logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a>
+        <a class="back" href="/command-central">← Command Central</a>
+      </div>
+    </header>
+
+    <main class="shell">
+      <div class="eyebrow">Command Central / Event Brief</div>
+      <h1>{event.name}</h1>
+      <div class="date">{dateLine}</div>
+      <div class="place">{event.city}{event.state ? `, ${event.state}` : ''}{event.region ? ` · ${event.region}` : ''}</div>
+      <p class="summary">{event.public_summary}</p>
+
+      <div class="layout">
+        <section class="panel">
+          <h2>Event intelligence</h2>
+          <div class="facts">
+            <div class="fact"><span>Producer</span><strong>{producer?.name ?? 'Producer information pending'}</strong></div>
+            <div class="fact"><span>Event type</span><strong>{event.event_type ?? '—'}</strong></div>
+            <div class="fact"><span>Audience</span><strong>{event.primary_audience ?? '—'}</strong></div>
+            <div class="fact"><span>Exhibitor opportunity</span><strong>{event.exhibitor_opportunity ?? '—'}</strong></div>
+            <div class="fact"><span>Registration</span><strong>{event.registration_state ?? '—'}</strong></div>
+            <div class="fact"><span>XGL priority</span><strong>{event.xgl_priority ?? '—'}</strong></div>
+          </div>
+
+          {event.xgl_relevance ? (
+            <div class="why">
+              <strong>Why it matters</strong>
+              {event.xgl_relevance}
+            </div>
+          ) : null}
+
+          <div class="actions">
+            {event.official_url ? <a class="button primary" href={event.official_url} target="_blank" rel="noreferrer">Official event site</a> : null}
+            {producer?.website_url ? <a class="button" href={producer.website_url} target="_blank" rel="noreferrer">Producer</a> : null}
+            <a class="button" href="mailto:hello@goxgl.com?subject=Event%20support%20request">Talk to XGL about this event</a>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <h2>Deadlines & milestones</h2>
+          {deadlines.length ? (
+            <div class="deadlines">
+              {deadlines.map((deadline) => (
+                <div class={`deadline ${deadline.importance ?? ''}`}>
+                  <div class="deadline-date">{formatDeadline(deadline.deadline_at)}</div>
+                  <div class="deadline-title">{deadline.label}</div>
+                  <div class="deadline-meta">{deadline.deadline_type ?? 'Milestone'} · {deadline.importance ?? 'medium'} priority</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="why">No public exhibitor or registration deadlines are currently tracked for this event. Command Central will add them as organizers publish them.</p>
+          )}
+        </aside>
+      </div>
+
+      <footer>
+        <div>
+          <img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" />
+          <div class="tagline">Protect the Build. Grow the Legacy.</div>
+        </div>
+        <div>Command Central · Event intelligence for independent builders</div>
+      </footer>
+    </main>
+  </body>
+</html>
