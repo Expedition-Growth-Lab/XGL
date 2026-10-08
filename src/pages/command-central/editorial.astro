@@ -113,34 +113,25 @@
       }
 
       async function loadData() {
-        const [{ data: intelligence, error: intelligenceError }, { data: events, error: eventsError }] = await Promise.all([
-          supabase.from('intelligence_items')
-            .select('id,headline,summary,stream,geography,source_quality,urgency,editorial_status,source_url,detected_at')
-            .order('detected_at', { ascending: false })
-            .limit(100),
-          supabase.from('events')
-            .select('id,name,public_summary,region,event_type,xgl_priority,publication_status,official_url,start_date,date_status')
-            .order('start_date', { ascending: true, nullsFirst: false })
-            .limit(100)
-        ]);
+        const { data: payload, error } = await supabase.rpc('editorial_queue');
 
-        if (intelligenceError || eventsError) {
+        if (error || !payload) {
           loading.textContent = 'Could not load the editorial queue.';
           loading.classList.remove('hidden');
           return;
         }
 
         records = [
-          ...(intelligence || []).map((x) => ({
+          ...((payload.intelligence || []).map((x) => ({
             kind:'intelligence', id:x.id, headline:x.headline, summary:x.summary,
             stream:x.stream, geography:x.geography, urgency:x.urgency,
             status:x.editorial_status, source_url:x.source_url
-          })),
-          ...(events || []).map((x) => ({
+          }))),
+          ...((payload.events || []).map((x) => ({
             kind:'event', id:x.id, headline:x.name, summary:x.public_summary,
             event_type:x.event_type, region:x.region, priority:x.xgl_priority,
             status:x.publication_status, source_url:x.official_url
-          }))
+          })))
         ];
         render();
       }
