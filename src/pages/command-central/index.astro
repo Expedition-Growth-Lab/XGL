@@ -68,10 +68,11 @@ const signalLines = signals?.length
         --line-soft:rgba(188,199,204,.14);
         --text:#edf1f4;
         --muted:#9aa8af;
-        --sand:#d7c7a3;
-        --moss:#9fac8f;
-        --signal:#d8b879;
-        --critical:#d48c7f;
+        --orange:#f05a28;
+        --orange2:#ff7a3f;
+        --blue:#1bb7ff;
+        --blue2:#5bd7ff;
+        --critical:#f07a5d;
       }
 
       * { box-sizing:border-box; }
@@ -81,8 +82,9 @@ const signalLines = signals?.length
         min-height:100vh;
         color:var(--text);
         background:
-          radial-gradient(circle at 72% -10%, rgba(104,123,116,.18), transparent 33rem),
-          linear-gradient(180deg, #10161b 0%, #0c1115 34rem, #0b1014 100%);
+          radial-gradient(circle at 15% 0%,rgba(240,90,40,.18),transparent 28rem),
+          radial-gradient(circle at 92% 8%,rgba(27,183,255,.16),transparent 30rem),
+          linear-gradient(180deg,#070809 0%,#0d0e10 42%,#111214 100%);
       }
 
       body::before {
@@ -91,13 +93,14 @@ const signalLines = signals?.length
         inset:0;
         z-index:-2;
         pointer-events:none;
-        opacity:.34;
         background-image:
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='560' viewBox='0 0 900 560'%3E%3Cg fill='none' stroke='%23c9c2ae' stroke-opacity='.26' stroke-width='1.2'%3E%3Cpath d='M-30 102C105 18 188 34 286 82s205 55 315-13 214-60 330 7'/%3E%3Cpath d='M-50 132C78 51 177 63 276 112s214 53 324-16 223-55 341 20'/%3E%3Cpath d='M-60 167C63 89 164 93 270 143s224 52 332-17 222-46 352 33'/%3E%3Cpath d='M-70 203C55 127 151 125 262 176s228 50 342-18 231-41 362 42'/%3E%3Cpath d='M-80 245C51 165 148 164 259 216s233 49 349-21 235-29 367 58'/%3E%3Cpath d='M-92 292C41 210 145 205 256 257s239 48 358-22 241-18 370 72'/%3E%3Cpath d='M-100 342C35 257 141 250 253 303s243 48 364-23 250-7 379 84'/%3E%3Cpath d='M-110 397C26 311 137 301 251 354s247 46 370-24 257 4 385 96'/%3E%3Cpath d='M-120 454C16 369 134 355 250 408s252 45 377-25 263 15 391 108'/%3E%3C/g%3E%3C/svg%3E");
-        background-size:900px 560px;
-        background-position:50% 0;
-        filter:blur(.15px);
-        mask-image:linear-gradient(to bottom, #000 0%, rgba(0,0,0,.72) 38rem, transparent 80rem);
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='980' height='640' viewBox='0 0 980 640'%3E%3Cg fill='none' stroke='%235bd7ff' stroke-opacity='.24' stroke-width='1.35'%3E%3Cpath d='M-60 92C82 22 176 38 280 84s221 54 336-17 226-61 364 18'/%3E%3Cpath d='M-64 126C70 58 169 68 274 116s226 52 341-18 232-51 375 31'/%3E%3Cpath d='M-70 166C59 101 158 102 268 151s233 50 349-20 239-40 385 44'/%3E%3Cpath d='M-76 210C50 146 151 143 262 194s241 48 359-22 246-28 394 59'/%3E%3Cpath d='M-84 259C41 193 145 187 257 239s247 47 367-23 254-17 404 72'/%3E%3Cpath d='M-92 313C33 245 140 236 253 290s252 45 375-24 261-6 412 84'/%3E%3Cpath d='M-102 373C24 303 136 290 250 345s258 44 383-25 269 6 420 96'/%3E%3Cpath d='M-112 438C15 367 133 351 249 406s263 42 390-26 276 18 428 108'/%3E%3Cpath d='M-124 508C5 435 130 416 247 472s269 40 398-27 284 30 436 120'/%3E%3C/g%3E%3Cg fill='none' stroke='%23ff7a3f' stroke-opacity='.16' stroke-width='1.1'%3E%3Cpath d='M-120 188C33 111 160 115 280 174s248 57 375-25 260-60 422 34'/%3E%3Cpath d='M-126 228C24 151 153 151 275 212s253 55 381-27 267-51 430 47'/%3E%3Cpath d='M-132 272C16 196 147 192 270 253s258 54 388-28 273-41 438 59'/%3E%3Cpath d='M-140 321C7 244 142 237 266 299s263 52 395-30 280-29 445 72'/%3E%3C/g%3E%3C/svg%3E"),
+          linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px);
+        background-size:980px 640px,54px 54px,54px 54px;
+        background-position:center 70px,0 0,0 0;
+        opacity:.72;
+        mask-image:linear-gradient(to bottom,rgba(0,0,0,.98),rgba(0,0,0,.58) 62rem,rgba(0,0,0,.15));
       }
 
       body::after {
@@ -106,11 +109,10 @@ const signalLines = signals?.length
         inset:0;
         z-index:-1;
         pointer-events:none;
-        background:
-          linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
-          linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px);
-        background-size:44px 44px;
-        mask-image:linear-gradient(to bottom, rgba(0,0,0,.7), transparent 60rem);
+        opacity:.07;
+        background-image:radial-gradient(rgba(255,255,255,.78) .55px,transparent .55px);
+        background-size:7px 7px;
+        mix-blend-mode:screen;
       }
 
       a { color:inherit; }
@@ -120,18 +122,18 @@ const signalLines = signals?.length
       .topbar {
         position:sticky;
         top:0;
-        z-index:20;
-        backdrop-filter:blur(18px);
-        background:rgba(10,15,19,.78);
-        border-bottom:1px solid var(--line-soft);
+        z-index:50;
+        background:rgba(9,10,12,.82);
+        backdrop-filter:blur(16px);
+        border-bottom:1px solid rgba(255,255,255,.1);
       }
 
       .topbar-inner {
-        min-height:64px;
-        display:flex;
+        min-height:76px;
+        display:grid;
+        grid-template-columns:auto 1fr auto;
+        gap:22px;
         align-items:center;
-        gap:1rem;
-        justify-content:space-between;
       }
 
       .brand {
@@ -139,48 +141,58 @@ const signalLines = signals?.length
         align-items:center;
         gap:.8rem;
         text-decoration:none;
-        font-weight:760;
+        color:#fff;
+        font-weight:900;
         letter-spacing:.01em;
       }
 
-      .brand-mark {
-        width:30px;
-        aspect-ratio:1;
-        border:1px solid rgba(215,199,163,.62);
-        border-radius:50%;
-        position:relative;
+      .brand-xgl {
+        font-size:1.45rem;
+        letter-spacing:.06em;
+        font-weight:950;
+        color:#fff;
       }
 
-      .brand-mark::before,
-      .brand-mark::after {
-        content:"";
-        position:absolute;
-        left:5px;
-        right:5px;
-        border-top:1px solid rgba(215,199,163,.72);
-        border-radius:50%;
+      .brand-name {
+        font-size:.78rem;
+        color:#c9c5be;
+        text-transform:uppercase;
+        letter-spacing:.14em;
+        font-weight:800;
       }
-
-      .brand-mark::before { top:10px; transform:rotate(-10deg); }
-      .brand-mark::after { top:16px; transform:rotate(12deg); }
 
       nav {
         display:flex;
-        gap:.25rem;
+        justify-content:center;
+        gap:24px;
         align-items:center;
         flex-wrap:wrap;
+        color:#dad6cf;
+        font-weight:700;
+        font-size:.9rem;
       }
 
       nav a {
         text-decoration:none;
-        font-size:.78rem;
-        color:#a9b4b9;
-        padding:.55rem .65rem;
-        border-radius:8px;
+        color:#dad6cf;
       }
 
-      nav a:hover { background:rgba(255,255,255,.045); color:#fff; }
-      nav .editorial { border:1px solid rgba(215,199,163,.28); color:#d7c7a3; }
+      nav a:hover { color:#fff; }
+
+      .nav-cta {
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        min-height:46px;
+        padding:0 20px;
+        border-radius:999px;
+        border:1px solid rgba(240,90,40,.8);
+        background:linear-gradient(180deg,var(--orange2),var(--orange));
+        color:#fff;
+        text-decoration:none;
+        font-weight:900;
+        box-shadow:0 14px 30px rgba(240,90,40,.18);
+      }
 
       .signal-rail {
         border-bottom:1px solid var(--line-soft);
@@ -243,7 +255,7 @@ const signalLines = signals?.length
       .kicker::before {
         content:"";
         width:36px;
-        border-top:1px solid var(--sand);
+        border-top:1px solid var(--orange2);
       }
 
       h1 {
@@ -264,7 +276,7 @@ const signalLines = signals?.length
 
       .mission {
         margin-top:2rem;
-        color:var(--sand);
+        color:var(--orange2);
         font-size:.86rem;
         text-transform:uppercase;
         letter-spacing:.12em;
@@ -365,9 +377,9 @@ const signalLines = signals?.length
 
       .filter.active,
       .filter:hover {
-        color:#151b1f;
-        background:var(--sand);
-        border-color:var(--sand);
+        color:#fff;
+        background:linear-gradient(180deg,var(--orange2),var(--orange));
+        border-color:rgba(240,90,40,.8);
       }
 
       .grid {
@@ -520,7 +532,7 @@ const signalLines = signals?.length
 
       .button:hover { background:#d7c7a3; border-color:#d7c7a3; color:#14191c; }
       .button.primary { background:#d7c7a3; border-color:#d7c7a3; color:#14191c; }
-      .button.primary:hover { background:#e1d4b7; }
+      .button.primary:hover { filter:brightness(1.05); }
 
       .watch-section {
         margin-top:5.5rem;
@@ -535,16 +547,27 @@ const signalLines = signals?.length
 
       .empty { display:none !important; }
 
-      .footnote {
-        margin-top:3.5rem;
-        padding-top:1.3rem;
-        border-top:1px solid rgba(255,255,255,.07);
+      .site-footer {
+        margin-top:4.5rem;
+        padding:40px 0 64px;
+        color:#b7b0a6;
+      }
+
+      .footer-inner {
+        border-top:1px solid rgba(255,255,255,.12);
+        padding-top:24px;
         display:flex;
         justify-content:space-between;
-        gap:2rem;
-        color:#718087;
-        font-size:.74rem;
+        gap:24px;
+        flex-wrap:wrap;
       }
+
+      .footer-title { color:#fff; font-weight:900; }
+      .footer-sub { margin-top:2px; color:#b7b0a6; }
+      .copyright { font-size:.78rem; color:#7d756e; margin-top:10px; max-width:720px; }
+      .footer-links { display:flex; gap:18px; flex-wrap:wrap; align-content:flex-start; }
+      .footer-links a { color:#b7b0a6; text-decoration:none; }
+      .footer-links a:hover { color:#fff; }
 
       .error {
         padding:1rem;
@@ -562,8 +585,10 @@ const signalLines = signals?.length
 
       @media (max-width:760px) {
         .shell { width:min(100% - 24px,1480px); }
-        .topbar-inner { min-height:58px; }
-        nav a:not(.editorial) { display:none; }
+        .topbar-inner { min-height:64px; grid-template-columns:1fr auto; }
+        nav { display:none; }
+        .brand-name { display:none; }
+        .nav-cta { min-height:40px; padding:0 15px; font-size:.78rem; }
         .signal-track { overflow-x:auto; scrollbar-width:none; }
         .hero { padding:5.2rem 0 3.2rem; }
         h1 { font-size:clamp(3.5rem,20vw,6rem); }
@@ -579,15 +604,16 @@ const signalLines = signals?.length
     <header class="topbar">
       <div class="shell topbar-inner">
         <a class="brand" href="/">
-          <span class="brand-mark" aria-hidden="true"></span>
-          <span>Expedition Growth Lab</span>
+          <span class="brand-xgl">XGL</span>
+          <span class="brand-name">Expedition Growth Lab</span>
         </a>
         <nav aria-label="Command Central">
           <a href="#events">Event Calendar</a>
           <a href="#watch">Watch List</a>
           <a href="#field-signal">Field Signal</a>
-          <a href="/command-central/login" class="editorial">Editorial Room</a>
+          <a href="/command-central/login">Editorial Room</a>
         </nav>
+        <a class="nav-cta" href="https://plans.goxgl.com/get-your-growth-terrain-assessment">Start Assessment</a>
       </div>
     </header>
 
@@ -635,7 +661,7 @@ const signalLines = signals?.length
             <h2>Where the industry is gathering.</h2>
           </div>
           <div class="section-note">
-            Official-source dates, XGL context, and exhibitor relevance. Unknown dates stay unknown until the source says otherwise.
+            Plan the season with verified dates, regional context, and the events that matter most to builders, manufacturers, dealers, and expedition brands.
           </div>
         </div>
 
@@ -701,7 +727,7 @@ const signalLines = signals?.length
                 <h2>Recurring events. Dates still moving.</h2>
               </div>
               <div class="section-note">
-                We do not manufacture certainty. These stay on watch until their producers publish the date.
+                These recurring events are worth keeping on the radar. We’ll add confirmed dates as soon as organizers publish them.
               </div>
             </div>
 
@@ -734,10 +760,21 @@ const signalLines = signals?.length
           </section>
         ) : null}
 
-        <div class="footnote">
-          <span>Command Central / Expedition Growth Lab</span>
-          <span>Official-source verification · Human editorial gate · Versioned publishing</span>
-        </div>
+        <footer class="site-footer">
+          <div class="footer-inner">
+            <div>
+              <div class="footer-title">Expedition Growth Lab</div>
+              <div class="footer-sub">Systems · Strategy · Scale</div>
+              <div class="copyright">© 2026 Expedition Growth Lab. Protect the Build. Grow the Legacy.</div>
+            </div>
+            <div class="footer-links">
+              <a href="/command-central">Command Central</a>
+              <a href="https://plans.goxgl.com/get-your-growth-terrain-assessment">Growth Terrain Assessment</a>
+              <a href="mailto:hello@goxgl.com">hello@goxgl.com</a>
+              <a href="tel:15412362252">541.236.2252</a>
+            </div>
+          </div>
+        </footer>
       </section>
     </main>
 
