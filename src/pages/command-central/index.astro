@@ -1,0 +1,126 @@
+---
+import { createPublicClient } from '../../lib/supabase';
+
+const supabase = createPublicClient();
+const { data: events, error } = await supabase
+  .from('events')
+  .select('id,slug,name,start_date,end_date,date_status,city,state,region,event_type,primary_audience,xgl_priority,exhibitor_opportunity,registration_state,official_url,public_summary,xgl_relevance')
+  .eq('publication_status', 'published')
+  .order('start_date', { ascending: true, nullsFirst: false });
+
+const rows = events ?? [];
+const confirmed = rows.filter((event) => event.date_status === 'confirmed');
+const tba = rows.filter((event) => event.date_status === 'dates_tba');
+
+const formatDate = (value?: string | null) =>
+  value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value + 'T12:00:00Z')) : 'TBA';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Command Central | Expedition Growth Lab</title>
+    <meta name="description" content="Command Central event intelligence from Expedition Growth Lab." />
+    <style>
+      :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f7f8fa; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:radial-gradient(circle at top right,#18202b 0,#0d1117 42%); min-height:100vh; }
+      a { color:inherit; }
+      main { max-width:1280px; margin:auto; padding:3rem 1.25rem 5rem; }
+      .eyebrow { text-transform:uppercase; letter-spacing:.18em; opacity:.62; font-size:.78rem; }
+      h1 { font-size:clamp(3.5rem,9vw,7.5rem); line-height:.86; margin:.55rem 0 1rem; letter-spacing:-.055em; }
+      .lead { max-width:820px; font-size:1.15rem; line-height:1.65; color:#bdc7d4; }
+      .metrics { display:flex; flex-wrap:wrap; gap:.75rem; margin:2rem 0 3rem; }
+      .metric { border:1px solid #273140; background:#121820; padding:.8rem 1rem; border-radius:999px; }
+      .metric b { margin-right:.4rem; }
+      .section-head { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin:3rem 0 1rem; }
+      h2 { font-size:2rem; margin:0; }
+      .muted { color:#91a0b1; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; }
+      .card { background:#141a22; border:1px solid #283343; border-radius:18px; padding:1.15rem; display:flex; flex-direction:column; gap:.8rem; }
+      .date { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:#9eb0c6; }
+      .card h3 { margin:0; font-size:1.25rem; line-height:1.2; }
+      .meta { display:flex; flex-wrap:wrap; gap:.45rem; }
+      .tag { font-size:.78rem; border:1px solid #334155; border-radius:999px; padding:.35rem .55rem; color:#b8c5d4; }
+      .priority-critical { border-color:#784f4f; color:#ffd1d1; }
+      .summary { color:#bac4cf; line-height:1.5; flex:1; }
+      .why { padding:.75rem; border-radius:12px; background:#11161c; color:#aab6c4; font-size:.9rem; line-height:1.45; }
+      .actions { display:flex; gap:.65rem; flex-wrap:wrap; }
+      .button { display:inline-block; text-decoration:none; padding:.65rem .85rem; border-radius:10px; background:#e9edf3; color:#111820; font-weight:700; font-size:.9rem; }
+      .button.secondary { background:transparent; color:#d9e2ed; border:1px solid #3a4657; }
+      .tba { border-style:dashed; }
+      .error { padding:1rem; border:1px solid #6d3b3b; border-radius:12px; background:#241515; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Expedition Growth Lab</div>
+      <h1>Command Central</h1>
+      <p class="lead">Live terrain intelligence for the builders, outfitters, fabricators, dealers, travelers, and independent operators who make the expedition world move.</p>
+
+      <div class="metrics">
+        <div class="metric"><b>{rows.length}</b> tracked events</div>
+        <div class="metric"><b>{confirmed.length}</b> confirmed dates</div>
+        <div class="metric"><b>{tba.length}</b> verified / dates TBA</div>
+      </div>
+
+      {error ? <div class="error">Command Central data is temporarily unavailable.</div> : null}
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Event Calendar</div>
+          <h2>Where the industry is gathering</h2>
+        </div>
+        <span class="muted">Verified against official sources</span>
+      </div>
+
+      <div class="grid">
+        {confirmed.map((event) => (
+          <article class="card">
+            <div class="date">{formatDate(event.start_date)}{event.end_date && event.end_date !== event.start_date ? ` — ${formatDate(event.end_date)}` : ''}</div>
+            <h3>{event.name}</h3>
+            <div class="meta">
+              {event.city ? <span class="tag">{event.city}{event.state ? `, ${event.state}` : ''}</span> : null}
+              {event.event_type ? <span class="tag">{event.event_type}</span> : null}
+              {event.region ? <span class="tag">{event.region}</span> : null}
+              {event.xgl_priority === 'critical' ? <span class="tag priority-critical">XGL Priority: Critical</span> : null}
+            </div>
+            <div class="summary">{event.public_summary}</div>
+            {event.xgl_relevance ? <div class="why"><strong>Why XGL cares:</strong> {event.xgl_relevance}</div> : null}
+            <div class="actions">
+              {event.official_url ? <a class="button" href={event.official_url} target="_blank" rel="noreferrer">Official event</a> : null}
+              <a class="button secondary" href="/contact">Need exhibit help?</a>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {tba.length ? (
+        <>
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Watch List</div>
+              <h2>Confirmed recurring events, dates pending</h2>
+            </div>
+          </div>
+          <div class="grid">
+            {tba.map((event) => (
+              <article class="card tba">
+                <div class="date">2027 date TBA</div>
+                <h3>{event.name}</h3>
+                <div class="meta">
+                  {event.city ? <span class="tag">{event.city}{event.state ? `, ${event.state}` : ''}</span> : null}
+                  {event.region ? <span class="tag">{event.region}</span> : null}
+                </div>
+                <div class="summary">{event.public_summary}</div>
+                <div class="actions">
+                  {event.official_url ? <a class="button secondary" href={event.official_url} target="_blank" rel="noreferrer">Official source</a> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </main>
+  </body>
+</html>
