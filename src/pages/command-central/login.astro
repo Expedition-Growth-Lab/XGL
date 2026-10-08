@@ -1,0 +1,60 @@
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Command Central Login | Expedition Growth Lab</title>
+    <style>
+      :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f7f8fa; }
+      body { margin:0; min-height:100vh; display:grid; place-items:center; padding:1.5rem; }
+      .panel { width:min(520px,100%); padding:2rem; border:1px solid #2a3545; border-radius:20px; background:#141a22; }
+      h1 { margin:.4rem 0 1rem; font-size:2.2rem; }
+      p { color:#aeb9c7; line-height:1.55; }
+      label { display:block; margin:1.5rem 0 .45rem; color:#cbd5e1; }
+      input { width:100%; padding:.85rem 1rem; border-radius:10px; border:1px solid #354154; background:#0f141b; color:white; }
+      button { margin-top:1rem; width:100%; padding:.9rem 1rem; border:0; border-radius:10px; background:#e9edf3; color:#10161d; font-weight:800; cursor:pointer; }
+      .status { margin-top:1rem; min-height:1.5rem; color:#a8d3ad; }
+      .eyebrow { text-transform:uppercase; letter-spacing:.17em; font-size:.75rem; color:#8494a7; }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <div class="eyebrow">Private XGL Back Office</div>
+      <h1>Editorial Room</h1>
+      <p>Enter an authorized XGL email address. Command Central will send a secure sign-in link.</p>
+      <form id="login-form">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+        <button type="submit">Send sign-in link</button>
+      </form>
+      <div id="status" class="status" aria-live="polite"></div>
+    </main>
+
+    <script>
+      import { createBrowserClient } from '../../lib/supabase';
+
+      const supabase = createBrowserClient();
+      const form = document.querySelector('#login-form');
+      const status = document.querySelector('#status');
+
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.querySelector('#email')?.value?.trim();
+        if (!email) return;
+
+        status.textContent = 'Sending secure sign-in link…';
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: window.location.origin + '/command-central/editorial'
+          }
+        });
+
+        status.textContent = error
+          ? 'Sign-in link could not be sent.'
+          : 'Check your email for the secure sign-in link.';
+      });
+    </script>
+  </body>
+</html>
