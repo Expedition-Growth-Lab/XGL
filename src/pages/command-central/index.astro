@@ -241,11 +241,11 @@ const signalLines = signals?.length
       .signal-dot { color:#607079; }
 
       .hero {
-        min-height:570px;
-        padding:7rem 0 4.5rem;
+        min-height:520px;
+        padding:6.2rem 0 4.2rem;
         display:grid;
-        grid-template-columns:minmax(0,1.5fr) minmax(290px,.55fr);
-        gap:4rem;
+        grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+        gap:3.5rem;
         align-items:end;
         border-bottom:1px solid var(--line-soft);
       }
@@ -268,12 +268,12 @@ const signalLines = signals?.length
       }
 
       h1 {
-        max-width:1050px;
         margin:.8rem 0 1.25rem;
-        font-size:clamp(4rem,9vw,8.6rem);
-        line-height:.82;
-        letter-spacing:-.068em;
+        font-size:clamp(4rem,7.1vw,7.4rem);
+        line-height:.88;
+        letter-spacing:-.062em;
         font-weight:760;
+        white-space:nowrap;
       }
 
       .lead {
@@ -292,10 +292,34 @@ const signalLines = signals?.length
         font-weight:800;
       }
 
+      .hero-side {
+        position:relative;
+        min-height:330px;
+        display:flex;
+        align-items:flex-end;
+        justify-content:flex-end;
+      }
+
+      .hero-mark {
+        position:absolute;
+        width:min(480px,43vw);
+        right:-1.4rem;
+        top:-4.5rem;
+        opacity:.34;
+        filter:saturate(.9) contrast(1.04);
+        pointer-events:none;
+        user-select:none;
+      }
+
       .hero-panel {
-        border-left:1px solid rgba(215,199,163,.28);
+        position:relative;
+        z-index:2;
+        width:min(340px,100%);
+        border-left:1px solid rgba(255,255,255,.18);
         padding-left:1.4rem;
         margin-bottom:.5rem;
+        background:linear-gradient(90deg,rgba(8,11,14,.18),rgba(8,11,14,.46));
+        backdrop-filter:blur(2px);
       }
 
       .hero-panel .label {
@@ -632,6 +656,9 @@ const signalLines = signals?.length
 
       @media (max-width:1100px) {
         .hero { grid-template-columns:1fr; gap:2rem; min-height:auto; }
+        h1 { white-space:normal; }
+        .hero-side { min-height:260px; justify-content:flex-start; }
+        .hero-mark { right:auto; left:34%; top:-3rem; width:min(470px,58vw); }
         .hero-panel { max-width:520px; }
         .card { grid-column:span 6; }
       }
@@ -648,7 +675,9 @@ const signalLines = signals?.length
         .footer-links { justify-content:flex-start; }
         .signal-track { overflow-x:auto; scrollbar-width:none; }
         .hero { padding:5.2rem 0 3.2rem; }
-        h1 { font-size:clamp(3.5rem,20vw,6rem); }
+        h1 { font-size:clamp(3.2rem,15vw,5.2rem); white-space:normal; }
+        .hero-side { min-height:240px; }
+        .hero-mark { left:12%; top:-2rem; width:min(420px,82vw); opacity:.28; }
         .section-head { grid-template-columns:1fr; }
         .section-note { text-align:left; }
         .filterbar input { width:100%; min-width:0; margin-left:0; order:10; }
@@ -700,7 +729,7 @@ const signalLines = signals?.length
       <section class="hero">
         <div>
           <div class="kicker">Operational intelligence for independent builders</div>
-          <h1>Command<br />Central</h1>
+          <h1>Command Central</h1>
           <p class="lead">
             A living map of the events, deadlines, regulatory shifts, public-land signals, builder movement,
             and industry terrain that matter to the people actually making things.
@@ -708,13 +737,16 @@ const signalLines = signals?.length
           <div class="mission">Protect the Build. Grow the Legacy.</div>
         </div>
 
-        <aside class="hero-panel" aria-label="Command Central status">
-          <div class="label">Current terrain</div>
-          <div class="hero-stat"><strong>{rows.length}</strong><span>tracked events</span></div>
-          <div class="hero-stat"><strong>{confirmed.length}</strong><span>confirmed dates</span></div>
-          <div class="hero-stat"><strong>{critical.length}</strong><span>critical XGL priorities</span></div>
-          <div class="hero-stat"><strong>{tba.length}</strong><span>dates under watch</span></div>
-        </aside>
+        <div class="hero-side">
+          <img class="hero-mark" src="/assets/xgl-color-logo-hero.webp" alt="" aria-hidden="true" />
+          <aside class="hero-panel" aria-label="Command Central status">
+            <div class="label">Current terrain</div>
+            <div class="hero-stat"><strong>{rows.length}</strong><span>tracked events</span></div>
+            <div class="hero-stat"><strong>{confirmed.length}</strong><span>confirmed dates</span></div>
+            <div class="hero-stat"><strong>{critical.length}</strong><span>critical XGL priorities</span></div>
+            <div class="hero-stat"><strong>{tba.length}</strong><span>dates under watch</span></div>
+          </aside>
+        </div>
       </section>
 
       <section class="content" id="events">
