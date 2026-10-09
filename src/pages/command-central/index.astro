@@ -152,23 +152,50 @@ const signalLines = signals?.length
         mix-blend-mode:screen;
       }
 
-      nav {
+      .global-nav {
         display:flex;
         justify-content:flex-end;
-        gap:24px;
+        gap:18px;
         align-items:center;
         flex-wrap:wrap;
         color:#dad6cf;
         font-weight:700;
-        font-size:.9rem;
+        font-size:.86rem;
       }
 
-      nav a {
+      .global-nav a {
         text-decoration:none;
         color:#dad6cf;
       }
 
-      nav a:hover { color:#fff; }
+      .global-nav a:hover,
+      .global-nav a.active { color:#fff; }
+
+      .command-subnav {
+        border-bottom:1px solid var(--line-soft);
+        background:rgba(11,13,16,.72);
+      }
+      .command-subnav-inner {
+        min-height:42px;
+        display:flex;
+        align-items:center;
+        gap:1rem;
+        flex-wrap:wrap;
+      }
+      .command-subnav a {
+        color:#aeb9bd;
+        text-decoration:none;
+        font-size:.76rem;
+        font-weight:760;
+      }
+      .command-subnav a:hover { color:#fff; }
+      .command-subnav strong {
+        color:#f0ede8;
+        font-size:.72rem;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        margin-right:.2rem;
+      }
 
       .site-menu { display:none; position:relative; justify-self:end; }
       .site-menu summary {
@@ -666,7 +693,7 @@ const signalLines = signals?.length
       @media (max-width:760px) {
         .shell { width:min(100% - 24px,1480px); }
         .topbar-inner { min-height:64px; grid-template-columns:1fr auto; }
-        nav { display:none; }
+        .global-nav { display:none; }
         .site-menu { display:block; }
         .brand { min-width:0; }
         .brand-logo { width:min(300px,68vw); }
@@ -692,24 +719,39 @@ const signalLines = signals?.length
         <a class="brand" href="/" aria-label="Expedition Growth Lab home">
           <img class="brand-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" />
         </a>
-        <nav aria-label="Command Central">
-          <a href="#events">Event Calendar</a>
-          <a href="#watch">Watch List</a>
-          <a href="#field-signal">Field Signal</a>
-          <a href="/command-central/login">Editorial Room</a>
+        <nav class="global-nav" aria-label="Expedition Growth Lab">
+          <a href="/">Expo</a>
+          <a href="/growth-terrain-build.html">Growth Terrain Build</a>
+          <a href="/founders-build.html">Founders Build</a>
+          <a href="/partner-with-us.html">Partner With Us</a>
+          <a href="/contact.html">Contact</a>
+          <a class="active" href="/command-central">Command Central</a>
+          <a href="/terms.html">Terms</a>
         </nav>
         <details class="site-menu">
           <summary>Menu</summary>
           <div class="site-menu-panel">
-            <a href="/">XGL Home</a>
-            <a href="#events">Event Calendar</a>
-            <a href="#watch">Watch List</a>
-            <a href="#field-signal">Field Signal</a>
-            <a href="/command-central/login">Editorial Room</a>
+            <a href="/">Expo</a>
+            <a href="/growth-terrain-build.html">Growth Terrain Build</a>
+            <a href="/founders-build.html">Founders Build</a>
+            <a href="/partner-with-us.html">Partner With Us</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/command-central">Command Central</a>
+            <a href="/terms.html">Terms</a>
           </div>
         </details>
       </div>
     </header>
+
+    <div class="command-subnav">
+      <div class="shell command-subnav-inner">
+        <strong>Command Central</strong>
+        <a href="#events">Event Calendar</a>
+        <a href="#watch">Watch List</a>
+        <a href="#field-signal">Field Signal</a>
+        <a href="/command-central/login">Editorial Room</a>
+      </div>
+    </div>
 
     <div class="signal-rail" id="field-signal">
       <div class="shell signal-inner">
