@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
     <title>Editorial Room | Expedition Growth Lab</title>
-    <style>
+    <style is:global>
       :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f5f7fa; }
       * { box-sizing:border-box; }
       body { margin:0; min-height:100vh; }
@@ -35,6 +35,11 @@
       .tag { display:inline-block; font-size:.74rem; border:1px solid #344155; border-radius:999px; padding:.25rem .48rem; margin:.15rem .2rem .15rem 0; color:#bac7d5; }
       .actions { display:flex; flex-wrap:wrap; gap:.4rem; }
       .state { margin:1rem 0; padding:.9rem 1rem; border-radius:12px; background:#141b24; border:1px solid #2a3545; }
+      .briefbox { margin-top:.7rem; border:1px solid #2d3b4c; border-radius:10px; background:#0f151d; overflow:hidden; }
+      .briefbox summary { cursor:pointer; padding:.7rem .8rem; color:#d9e2eb; font-weight:800; }
+      .briefbody { padding:0 .8rem .85rem; color:#bcc8d4; white-space:pre-wrap; line-height:1.55; font-size:.82rem; }
+      .why { margin-top:.7rem; padding:.7rem .8rem; border-left:3px solid #5e748c; background:#101720; color:#aebdca; font-size:.82rem; line-height:1.5; }
+      .meta { margin-top:.55rem; color:#738398; font-size:.74rem; }
       .hidden { display:none !important; }
       @media(max-width:900px){ .row { grid-template-columns:1fr; } .head { display:none; } }
     </style>
@@ -115,6 +120,13 @@
             <div>
               <div class="headline">${escapeHtml(item.headline)}</div>
               <div class="small">${escapeHtml(item.summary || '')}</div>
+              ${item.why_xgl_cares ? `<div class="why"><strong>Why XGL cares:</strong> ${escapeHtml(item.why_xgl_cares)}</div>` : ''}
+              ${item.public_body ? `
+                <details class="briefbox" open>
+                  <summary>What changed & what to review</summary>
+                  <div class="briefbody">${escapeHtml(item.public_body)}</div>
+                </details>` : ''}
+              ${item.detected_at ? `<div class="meta">Detected ${new Date(item.detected_at).toLocaleString()}</div>` : ''}
             </div>
             <div class="small">
               ${badge(item.stream || item.event_type)}
@@ -160,7 +172,9 @@
           ...((payload.intelligence || []).map((x) => ({
             kind:'intelligence', id:x.id, headline:x.headline, summary:x.summary,
             stream:x.stream, geography:x.geography, urgency:x.urgency,
-            status:x.editorial_status, source_url:x.source_url
+            status:x.editorial_status, source_url:x.source_url,
+            why_xgl_cares:x.why_xgl_cares, public_body:x.public_body,
+            detected_at:x.detected_at, change_flag:x.change_flag
           }))),
           ...((payload.events || []).map((x) => ({
             kind:'event', id:x.id, headline:x.name, summary:x.public_summary,
