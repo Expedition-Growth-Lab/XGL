@@ -21,6 +21,13 @@
       .watch-stats { color:#91a0b1; font-size:.82rem; }
       .watch-actions { display:flex; gap:.55rem; align-items:center; flex-wrap:wrap; }
       .watch-status { color:#9fc7a5; font-size:.82rem; min-width:180px; }
+      .guide { margin:0 0 1.25rem; padding:1rem 1.1rem; border:1px solid #344459; border-radius:14px; background:linear-gradient(180deg,#151d27,#111820); color:#c7d2dc; }
+      .guide strong { color:#fff; }
+      .guide-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; margin-top:.8rem; }
+      .guide-item { padding:.75rem; border:1px solid #2b394a; border-radius:10px; background:#0f151c; font-size:.8rem; line-height:1.45; }
+      .guide-item b { display:block; color:#fff; margin-bottom:.2rem; }
+      .recommend { margin-top:.75rem; padding:.75rem .8rem; border:1px solid #40526a; border-radius:10px; background:#121b25; color:#dbe5ee; font-size:.84rem; line-height:1.5; }
+      .recommend strong { color:#fff; }
       .toolbar { display:flex; gap:.65rem; flex-wrap:wrap; margin:1rem 0 1.5rem; }
       button { border:1px solid #3a4657; background:#171e27; color:#eef2f6; border-radius:10px; padding:.65rem .85rem; cursor:pointer; font-weight:700; }
       button.primary { background:#edf1f6; color:#10161d; border-color:#edf1f6; }
@@ -41,7 +48,8 @@
       .why { margin-top:.7rem; padding:.7rem .8rem; border-left:3px solid #5e748c; background:#101720; color:#aebdca; font-size:.82rem; line-height:1.5; }
       .meta { margin-top:.55rem; color:#738398; font-size:.74rem; }
       .hidden { display:none !important; }
-      @media(max-width:900px){ .row { grid-template-columns:1fr; } .head { display:none; } }
+      @media(max-width:900px){ .row { grid-template-columns:1fr; } .head { display:none; } .guide-grid { grid-template-columns:1fr 1fr; } }
+      @media(max-width:600px){ .guide-grid { grid-template-columns:1fr; } }
     </style>
   </head>
   <body>
@@ -69,10 +77,22 @@
             <button id="run-source-check">Run source check</button>
           </div>
         </div>
+        <div class="guide">
+          <strong>How to use this room</strong>
+          <div class="small" style="margin-top:.35rem">You are making one editorial decision at a time. Read the item, open the source if needed, then choose the action that matches what you learned.</div>
+          <div class="guide-grid">
+            <div class="guide-item"><b>Publish now</b>The fact is real, useful to XGL readers, and ready to appear publicly.</div>
+            <div class="guide-item"><b>Verified — keep private</b>You confirmed it is true, but it still needs writing, context, timing, or another decision before publication.</div>
+            <div class="guide-item"><b>Hold for later</b>Potentially useful, but not ready or not timely. Park it without rejecting it.</div>
+            <div class="guide-item"><b>Reject / archive</b>Noise, duplicate, irrelevant, wrong, or not worth publishing. Remove it from the working queue.</div>
+          </div>
+          <div class="small" style="margin-top:.8rem"><strong>Remove from public</strong> only appears for something already published; use it when the information should no longer be visible.</div>
+        </div>
         <div class="toolbar">
-          <button data-filter="all" class="primary">All</button>
-          <button data-filter="intelligence">Editorial Queue</button>
+          <button data-filter="all" class="primary">Working Queue</button>
+          <button data-filter="intelligence">Intelligence</button>
           <button data-filter="event">Events</button>
+          <button data-filter="history">History</button>
           <button id="refresh">Refresh</button>
         </div>
         <div id="queue" class="panel"></div>
@@ -105,16 +125,83 @@
         return value ? `<span class="tag">${escapeHtml(value)}</span>` : '';
       }
 
+      function friendlyStatus(value = '') {
+        return ({
+          needs_verification:'Needs source check',
+          needs_commentary:'Needs XGL context',
+          verified:'Verified / private',
+          hold:'Held for later',
+          published:'Published',
+          scheduled:'Scheduled',
+          draft:'Draft / private',
+          review:'Needs review',
+          killed:'Archived',
+          archived:'Archived'
+        })[value] || value.replaceAll('_',' ');
+      }
+
+      function isHistory(item) {
+        return ['killed','archived'].includes(item.status);
+      }
+
+      function recommendation(item) {
+        if (item.kind === 'intelligence') {
+          if (item.status === 'needs_verification') return 'Recommended next step: open the source and confirm the specific claim. If true but not yet publication-ready, choose “Verified — keep private.” If the alert is noise or irrelevant, choose “Reject / archive.”';
+          if (item.status === 'needs_commentary') return 'Recommended next step: the underlying fact is already worth keeping. Add or confirm XGL context, then choose “Publish now” when the wording is ready.';
+          if (item.status === 'verified') return 'Recommended next step: this has been fact-checked and is still private. Publish it when the wording and timing are right, or hold/archive it if it no longer matters.';
+          if (item.status === 'published') return 'This is already public. Leave it alone unless it is outdated or wrong; then use “Remove from public.”';
+          if (item.status === 'hold') return 'This is parked. Revisit it when timing or evidence improves.';
+        }
+        if (item.kind === 'event') {
+          if (item.status === 'published') return 'This event is already public. Use “Mark verified today” after checking the official source. Remove it from public only if the listing should disappear.';
+          if (item.status === 'review' || item.status === 'draft') return 'Recommended next step: check the official source. Publish only when the date/details are trustworthy and useful.';
+        }
+        return 'Read the item and its source, then choose the action that best matches the evidence.';
+      }
+
+      function actionButtons(item) {
+        if (isHistory(item)) return '<div class="small">Archived. No action required.</div>';
+
+        const buttons = [];
+        if (item.status !== 'published') {
+          buttons.push('<button data-action="approve" class="primary">Publish now</button>');
+        }
+        if (item.kind === 'intelligence' && item.status !== 'verified') {
+          buttons.push('<button data-action="verify">Verified — keep private</button>');
+        }
+        if (item.kind === 'event') {
+          buttons.push('<button data-action="verify">Mark verified today</button>');
+        }
+        if (!['hold','published'].includes(item.status)) {
+          buttons.push('<button data-action="hold">Hold for later</button>');
+        }
+        if (item.status === 'published') {
+          buttons.push('<button data-action="unpublish">Remove from public</button>');
+        }
+        buttons.push('<button data-action="kill" class="danger">Reject / archive</button>');
+        return buttons.join('');
+      }
+
       function render() {
-        const visible = records.filter((item) => activeFilter === 'all' || item.kind === activeFilter);
+        const visible = records.filter((item) => {
+          if (activeFilter === 'history') return isHistory(item);
+          if (isHistory(item)) return false;
+          return activeFilter === 'all' || item.kind === activeFilter;
+        });
+
+        if (!visible.length) {
+          queue.innerHTML = '<div class="state">Nothing needs your attention in this view.</div>';
+          return;
+        }
+
         queue.innerHTML = `
           <div class="row head">
-            <div>Status</div><div>Item</div><div>Context</div><div>Actions</div>
+            <div>Status</div><div>What you are deciding</div><div>Source / context</div><div>Your decision</div>
           </div>
         ` + visible.map((item) => `
           <div class="row" data-id="${item.id}" data-kind="${item.kind}">
             <div>
-              ${badge(item.status)}
+              ${badge(friendlyStatus(item.status))}
               ${badge(item.urgency || item.priority)}
             </div>
             <div>
@@ -123,22 +210,19 @@
               ${item.why_xgl_cares ? `<div class="why"><strong>Why XGL cares:</strong> ${escapeHtml(item.why_xgl_cares)}</div>` : ''}
               ${item.public_body ? `
                 <details class="briefbox" open>
-                  <summary>What changed & what to review</summary>
+                  <summary>Evidence: what changed & what to inspect</summary>
                   <div class="briefbody">${escapeHtml(item.public_body)}</div>
                 </details>` : ''}
+              <div class="recommend"><strong>What should I do?</strong><br>${escapeHtml(recommendation(item))}</div>
               ${item.detected_at ? `<div class="meta">Detected ${new Date(item.detected_at).toLocaleString()}</div>` : ''}
             </div>
             <div class="small">
               ${badge(item.stream || item.event_type)}
               ${badge(item.geography || item.region)}
-              ${item.source_url ? `<div><a href="${item.source_url}" target="_blank" rel="noreferrer">Open source</a></div>` : ''}
+              ${item.source_url ? `<div style="margin-top:.55rem"><a href="${item.source_url}" target="_blank" rel="noreferrer">Open the official/source page ↗</a></div>` : '<div style="margin-top:.55rem">No source link attached.</div>'}
             </div>
             <div class="actions">
-              <button data-action="approve" class="primary">Approve</button>
-              <button data-action="verify">Verify</button>
-              <button data-action="hold">Hold</button>
-              <button data-action="unpublish">Unpublish</button>
-              <button data-action="kill" class="danger">Kill</button>
+              ${actionButtons(item)}
             </div>
           </div>
         `).join('');
