@@ -1,0 +1,5 @@
+XGL deployment marker
+2026-10-09
+Homepage restored at /
+Command Central remains at /command-central
+Editorial Room change briefs enabled
