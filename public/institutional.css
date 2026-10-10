@@ -40,3 +40,15 @@
   .eyebrow{font-size:12px;letter-spacing:.22em;margin-bottom:25px}
   .section-title{letter-spacing:-.05em}
 }
+
+/* Canonical XGL wordmark treatment from the clean master */
+.site-header .logo img,.footer-logo{
+  filter:invert(1) brightness(1.08);
+  mix-blend-mode:screen;
+  background:transparent;
+}
+/* Slightly quieter supporting copy, matching the reference site */
+.hero-copy{font-size:22px;font-weight:300;line-height:1.48}
+@media(max-width:620px){
+  .hero-copy{font-size:17px;font-weight:300;line-height:1.55}
+}
