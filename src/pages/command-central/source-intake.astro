@@ -1,0 +1,201 @@
+---
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+  <title>Source Intake | Command Central | Expedition Growth Lab</title>
+  <style is:global>
+    :root{font-family:Inter,system-ui,sans-serif;background:#0d1117;color:#f5f7fa}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh}
+    main{max-width:1050px;margin:auto;padding:2rem 1.25rem 5rem}
+    header{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:2rem}
+    .eyebrow{text-transform:uppercase;letter-spacing:.16em;color:#8293a6;font-size:.75rem}
+    h1{font-size:clamp(2.5rem,6vw,5rem);letter-spacing:-.05em;line-height:.95;margin:.3rem 0 1rem}
+    .lede{max-width:760px;color:#aeb9c7;font-size:1rem;line-height:1.6}
+    a{color:#8bdfff}
+    button,.button{border:1px solid #3a4657;background:#171e27;color:#eef2f6;border-radius:10px;padding:.72rem .9rem;cursor:pointer;font-weight:800;text-decoration:none;display:inline-block}
+    button.primary{background:#eef2f6;color:#10161d;border-color:#eef2f6}
+    button:disabled{opacity:.5}
+    .hidden{display:none!important}
+    .state{padding:1rem;border:1px solid #2a3545;background:#141b24;border-radius:12px}
+    .layout{display:grid;grid-template-columns:1.05fr .95fr;gap:1rem;align-items:start}
+    .panel{border:1px solid #293546;background:#131a22;border-radius:18px;padding:1.1rem}
+    h2{margin:.1rem 0 1rem;font-size:1.25rem}
+    label{display:block;font-weight:700;font-size:.83rem;margin:1rem 0 .4rem}
+    input,textarea,select{width:100%;border:1px solid #354154;background:#0f141b;color:#f7f8fa;border-radius:9px;padding:.78rem .85rem;font:inherit}
+    textarea{min-height:135px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .hint{color:#7f90a4;font-size:.75rem;line-height:1.45;margin-top:.35rem}
+    .status{min-height:1.3rem;color:#a8d3ad;margin-top:.8rem;font-size:.86rem}
+    .candidate{border-top:1px solid #2b3747;padding:.9rem 0}
+    .candidate:first-of-type{border-top:0}
+    .candidate-name{font-weight:800;line-height:1.3}
+    .candidate-url{display:block;color:#8bdfff;font-size:.8rem;overflow-wrap:anywhere;margin:.2rem 0}
+    .meta{font-size:.75rem;color:#8190a1}
+    .tag{display:inline-block;border:1px solid #344155;border-radius:999px;padding:.2rem .45rem;font-size:.7rem;color:#bac7d5;margin:.25rem .25rem 0 0}
+    .note{font-size:.82rem;color:#aab5c1;line-height:1.45;margin-top:.45rem}
+    .top-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+    @media(max-width:800px){.layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}header{display:block}.top-actions{margin-top:1rem}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="eyebrow">Private XGL Back Office · Command Central</div>
+      <h1>Source Intake</h1>
+      <div class="lede">Find something useful? Drop it here. Your job is only to tell me what caught your attention. The review layer handles authority, duplication, geography, independence, machine readability, routing, cadence, and whether the source deserves a permanent seat in the Watchtower.</div>
+    </div>
+    <div class="top-actions">
+      <a class="button" href="/command-central/editorial">Editorial Room</a>
+      <button id="sign-out">Sign out</button>
+    </div>
+  </header>
+
+  <div id="loading" class="state">Checking authorization…</div>
+  <div id="denied" class="state hidden">This account is not authorized for the XGL back office.</div>
+
+  <section id="app" class="layout hidden">
+    <form id="source-form" class="panel">
+      <h2>Nominate a source</h2>
+
+      <label for="url">URL *</label>
+      <input id="url" name="url" inputmode="url" placeholder="https://example.com" required />
+      <div class="hint">Any page is fine: homepage, newsroom, API docs, association page, newsletter archive, event producer, forum, regulator, manufacturer, or weird little local chamber page.</div>
+
+      <label for="name">Source name</label>
+      <input id="name" name="name" placeholder="ARB / Overland Journal / BLM Nevada..." />
+
+      <label for="note">What caught your eye?</label>
+      <textarea id="note" name="note" placeholder="Why this might matter, what you saw, or what you think it could be good for. One sentence is plenty."></textarea>
+
+      <div class="grid2">
+        <div>
+          <label for="region">Region</label>
+          <select id="region" name="region">
+            <option value="">Unknown / let Cricket determine</option>
+            <option>United States / Canada</option>
+            <option>Australia / New Zealand</option>
+            <option>South Africa</option>
+            <option>Europe / United Kingdom</option>
+            <option>Latin America</option>
+            <option>Middle East / Asia</option>
+            <option>Global</option>
+          </select>
+        </div>
+        <div>
+          <label for="watchtower">Watchtower guess</label>
+          <select id="watchtower" name="watchtower">
+            <option value="">Let Cricket determine</option>
+            <option>Business Watch</option>
+            <option>Regulatory Watch</option>
+            <option>Economic Watch</option>
+            <option>Technology Watch</option>
+            <option>Community Watch</option>
+            <option>Environmental Watch</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="desk">Public desk guess</label>
+      <select id="desk" name="desk">
+        <option value="">Let Cricket determine</option>
+        <option>Field Signal</option>
+        <option>Regulatory Watch</option>
+        <option>Public Lands Watch</option>
+        <option>Builder Intelligence</option>
+        <option>Industry Headlines</option>
+        <option>Emergency Response</option>
+        <option>Event Calendar</option>
+        <option>Inside the Lab</option>
+      </select>
+
+      <button class="primary" type="submit" id="submit-source" style="width:100%;margin-top:1.25rem">Hand It to Cricket</button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </form>
+
+    <aside class="panel">
+      <h2>Recent candidates</h2>
+      <div class="hint" style="margin-bottom:.7rem">These are candidates, not monitored sources. Nothing here becomes public or enters Source Watch merely because you submitted it.</div>
+      <div id="candidate-list"><div class="meta">Loading…</div></div>
+    </aside>
+  </section>
+</main>
+
+<script>
+  import { createBrowserClient } from '../../lib/supabase';
+  const supabase=createBrowserClient();
+  const loading=document.querySelector('#loading');
+  const denied=document.querySelector('#denied');
+  const app=document.querySelector('#app');
+  const form=document.querySelector('#source-form');
+  const status=document.querySelector('#status');
+  const list=document.querySelector('#candidate-list');
+  const submit=document.querySelector('#submit-source');
+  const signOut=document.querySelector('#sign-out');
+
+  function esc(value=''){return String(value).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+
+  async function loadCandidates(){
+    const {data,error}=await supabase.rpc('source_candidate_queue_staff');
+    if(error){list.innerHTML='<div class="meta">Could not load candidates.</div>';return;}
+    const rows=data||[];
+    if(!rows.length){list.innerHTML='<div class="meta">No candidates yet. Go find something weird and useful.</div>';return;}
+    list.innerHTML=rows.slice(0,30).map((row)=>`
+      <div class="candidate">
+        <div class="candidate-name">${esc(row.source_name||row.hostname||'Unnamed source')}</div>
+        <a class="candidate-url" href="${esc(row.submitted_url)}" target="_blank" rel="noreferrer">${esc(row.submitted_url)}</a>
+        <span class="tag">${esc(row.status)}</span>
+        ${row.suggested_region?'<span class="tag">'+esc(row.suggested_region)+'</span>':''}
+        ${row.suggested_watchtower_category?'<span class="tag">'+esc(row.suggested_watchtower_category)+'</span>':''}
+        ${row.suggested_public_desk?'<span class="tag">'+esc(row.suggested_public_desk)+'</span>':''}
+        ${row.submitter_note?'<div class="note">'+esc(row.submitter_note)+'</div>':''}
+        <div class="meta" style="margin-top:.4rem">Submitted ${new Date(row.submitted_at).toLocaleString()}</div>
+      </div>`).join('');
+  }
+
+  async function init(){
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){window.location.replace('/command-central/login');return;}
+    const {data:role,error}=await supabase.rpc('current_xgl_role');
+    if(error||!['owner','admin','editor'].includes(role)){
+      loading.classList.add('hidden');denied.classList.remove('hidden');return;
+    }
+    loading.classList.add('hidden');app.classList.remove('hidden');
+    await loadCandidates();
+  }
+
+  form?.addEventListener('submit',async(event)=>{
+    event.preventDefault();
+    submit.disabled=true;
+    status.textContent='Adding candidate…';
+    const fd=new FormData(form);
+    const {data,error}=await supabase.rpc('submit_source_candidate_staff',{
+      candidate_url:String(fd.get('url')||'').trim(),
+      candidate_name:String(fd.get('name')||'').trim()||null,
+      candidate_note:String(fd.get('note')||'').trim()||null,
+      candidate_region:String(fd.get('region')||'').trim()||null,
+      candidate_watchtower:String(fd.get('watchtower')||'').trim()||null,
+      candidate_public_desk:String(fd.get('desk')||'').trim()||null
+    });
+    submit.disabled=false;
+    if(error){status.textContent=error.message||'Could not add source.';return;}
+    if(data?.duplicate_type==='monitored_source'){
+      status.textContent='Already monitored. Good instinct; Command Central already has it.';
+    }else if(data?.duplicate){
+      status.textContent='Already in the candidate queue. I updated the saved notes/routing guess.';
+    }else{
+      status.textContent='Candidate saved. It is waiting for scrutiny—not monitoring.';
+      form.reset();
+    }
+    await loadCandidates();
+  });
+
+  signOut?.addEventListener('click',async()=>{await supabase.auth.signOut();window.location.replace('/command-central/login');});
+  init();
+</script>
+</body>
+</html>
