@@ -156,7 +156,7 @@
           if (item.status === 'published') return 'This event is already public. Use “Mark verified today” after checking the official source. Remove it from public only if the listing should disappear.';
           if (item.status === 'review' || item.status === 'draft') return 'Recommended next step: check the official source. Publish only when the date/details are trustworthy and useful.';
         }
-        return 'Read the item and its source, then choose the action that best matches the evidence.';
+        return 'Read the item and its source, then choose the action that best matches the evidence. The Watchtower category tells you where the signal was collected; the public desk tells you how readers will encounter it.';
       }
 
       function actionButtons(item) {
@@ -217,7 +217,8 @@
               ${item.detected_at ? `<div class="meta">Detected ${new Date(item.detected_at).toLocaleString()}</div>` : ''}
             </div>
             <div class="small">
-              ${badge(item.stream || item.event_type)}
+              ${badge(item.public_desk || item.stream || item.event_type)}
+              ${item.kind === 'intelligence' ? badge(item.watchtower_category ? `Watchtower: ${item.watchtower_category}` : '') : ''}
               ${badge(item.geography || item.region)}
               ${item.source_url ? `<div style="margin-top:.55rem"><a href="${item.source_url}" target="_blank" rel="noreferrer">Open the official/source page ↗</a></div>` : '<div style="margin-top:.55rem">No source link attached.</div>'}
             </div>
@@ -255,7 +256,7 @@
         records = [
           ...((payload.intelligence || []).map((x) => ({
             kind:'intelligence', id:x.id, headline:x.headline, summary:x.summary,
-            stream:x.stream, geography:x.geography, urgency:x.urgency,
+            stream:x.stream, public_desk:x.public_desk, watchtower_category:x.watchtower_category, geography:x.geography, urgency:x.urgency,
             status:x.editorial_status, source_url:x.source_url,
             why_xgl_cares:x.why_xgl_cares, public_body:x.public_body,
             detected_at:x.detected_at, change_flag:x.change_flag
