@@ -1,0 +1,33 @@
+---
+import { createPublicClient } from '../../lib/supabase';
+const supabase=createPublicClient();
+const {data}=await supabase.from('intelligence_items')
+  .select('id,slug,headline,stream,summary,urgency,published_at,source_url,why_xgl_cares')
+  .eq('editorial_status','published')
+  .order('published_at',{ascending:false})
+  .limit(100);
+const items=data??[];
+const groups=[
+  ['regulatory-watch','Regulatory Watch',(x)=>String(x.stream||'').toLowerCase().includes('regulatory')],
+  ['public-lands-watch','Public Lands Watch',(x)=>String(x.stream||'').toLowerCase().includes('public lands')],
+  ['builder-intelligence','Builder Intelligence',(x)=>String(x.stream||'').toLowerCase().includes('builder')],
+  ['industry-headlines','Industry Headlines',(x)=>String(x.stream||'').toLowerCase().includes('industry')],
+  ['emergency-response','Emergency Response',(x)=>String(x.stream||'').toLowerCase().includes('emergency')],
+  ['inside-the-lab','Inside the Lab',(x)=>String(x.stream||'').toLowerCase().includes('inside')]
+];
+const formatPublished=(v)=>v?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(v)):'';
+---
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Field Signal | Command Central | Expedition Growth Lab</title><link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp"><link rel="stylesheet" href="/institutional.css"><link rel="stylesheet" href="/command-central.css"></head>
+<body class="command-central-app">
+<header class="site-header"><div class="wrap"><a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"></a><nav class="nav"><a href="/the-lab">The Lab</a><a class="active" href="/command-central">Command Central</a><a href="/one-rising-sun">One Rising Sun</a><a href="/about">About</a><a href="/contact">Contact</a></nav><a class="assessment-cta" href="/assessment">Start Assessment</a><details class="mobile-menu"><summary>Menu</summary><div class="mobile-menu-panel"><a href="/">Home</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a><a href="/about">About</a><a href="/contact">Contact</a></div></details></div></header>
+<main>
+<section class="hero"><div class="wrap"><a class="cc-back" href="/command-central">← Back to Command Central</a><div class="eyebrow">Field Signal</div><h1 class="display">Meaning<br>before noise.</h1><p class="hero-copy">The public output of the XGL Watchtower: verified developments, useful context, and the question that matters most—what does this mean for builders and the communities around them?</p></div></section>
+<section class="cc-foundation"><div class="wrap">
+<div class="cc-feed">
+{items.length?items.map((item)=><article class="cc-feed-item"><div><div class="cc-feed-stream">{item.stream||'Field Signal'}</div><div style="color:#758287;font-size:12px;margin-top:7px">{formatPublished(item.published_at)}</div></div><div><h3>{item.headline}</h3>{item.summary&&<p>{item.summary}</p>}{item.why_xgl_cares&&<p style="margin-top:10px"><strong style="color:#e9e1d3">Why XGL cares:</strong> {item.why_xgl_cares}</p>}</div>{item.source_url?<a href={item.source_url} target="_blank" rel="noreferrer">Open Source ↗</a>:<span></span>}</article>):<div class="cc-empty">No public Field Signals have been released yet. The Watchtower can collect and review intelligence without publishing anything until the editorial gate is satisfied.</div>}
+</div>
+</div></section>
+{groups.map(([id,label,test])=>{const matches=items.filter(test);return matches.length?<section class="cc-watchtower" id={id}><div class="wrap cc-watchtower-inner"><div class="eyebrow gray">{label}</div><h2 class="section-title">{label}</h2><p class="copy" style="font-size:18px">{matches.length} published {matches.length===1?'signal':'signals'} currently indexed under this desk.</p></div></section>:null})}
+</main>
+<footer class="footer"><div class="wrap footer-grid"><div><img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"><div class="footer-tagline">Protect the Build. Grow the Legacy.</div><div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div></div><div><h4>Explore</h4><a href="/assessment">Growth Terrain Assessment</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a></div><div><h4>Company</h4><a href="/about">About XGL</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>
+</body></html>
