@@ -1,0 +1,61 @@
+/* Command Central application layer
+   Intentionally isolated from the global XGL site stylesheet.
+   All selectors live under .command-central-app or use cc-* names. */
+
+.command-central-app{
+  --cc-panel:#202427;
+  --cc-panel-2:#171b1d;
+  --cc-border:#44494b;
+  --cc-copy:#aeb6b8;
+  --cc-dim:#7f8a8e;
+  --cc-live:#9ee4b2;
+  --cc-watch:#f2ad40;
+}
+.command-central-app .cc-foundation{background:#101314;padding:108px 0}
+.command-central-app .cc-intro-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:100px;align-items:end;margin-bottom:48px}
+.command-central-app .cc-intro-copy{font-size:18px;color:#b8bfc1;line-height:1.55}
+.command-central-app .cc-desks{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.command-central-app .cc-desk{display:block;text-decoration:none;border:1px solid var(--cc-border);background:var(--cc-panel);padding:27px;min-height:155px;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+.command-central-app .cc-desk:hover{border-color:#66747a;background:#252a2d;transform:translateY(-2px)}
+.command-central-app .cc-desk h3{font-family:'Inter',Arial,sans-serif;font-size:28px;font-weight:400;letter-spacing:-.035em;text-transform:uppercase;line-height:1.15;margin:0 0 8px}
+.command-central-app .cc-desk p{font-size:17px;line-height:1.45;color:var(--cc-copy);margin:0}
+.command-central-app .cc-status{display:block;margin-top:12px;color:#86ddff;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.command-central-app .cc-status.live{color:var(--cc-live)}
+.command-central-app .cc-status.watch{color:var(--cc-watch)}
+.command-central-app .cc-signal-strip{border-top:1px solid #4b5052;border-bottom:1px solid #4b5052;margin-top:45px;padding:14px 0;display:flex;gap:22px;overflow:auto;color:#aab3b5;font-size:14px;white-space:nowrap}
+.command-central-app .cc-signal-strip b{color:#86ddff;text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+.command-central-app .cc-watchtower{background:#e9e1d3;color:#202224;padding:108px 0}
+.command-central-app .cc-watchtower-inner{max-width:850px;margin:auto}
+.command-central-app .cc-live-zone{padding:100px 0;background:#0f1315}
+.command-central-app .cc-live-zone h2{font-family:'Inter',Arial,sans-serif;font-size:58px;font-weight:300;letter-spacing:-.045em;text-transform:uppercase;margin:0 0 20px}
+.command-central-app .cc-live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:35px}
+.command-central-app .cc-live-card{background:#1b2023;border:1px solid #43494c;padding:25px;display:flex;flex-direction:column;min-height:285px}
+.command-central-app .cc-live-card h3{font-family:'Inter',Arial,sans-serif;font-size:28px;font-weight:400;letter-spacing:-.035em;text-transform:uppercase;line-height:1.1;margin:0 0 10px}
+.command-central-app .cc-live-date{color:#f2ad40;font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.command-central-app .cc-live-meta{color:#8e999d;font-size:14px;margin:5px 0 16px}
+.command-central-app .cc-live-card p{color:#b7bec0;font-size:16px;line-height:1.45}
+.command-central-app .cc-live-card .why{margin-top:auto;padding-top:15px;border-top:1px solid #343a3d;color:#919b9e;font-size:14px}
+.command-central-app .cc-live-card a{margin-top:14px;color:#86ddff;text-decoration:none;text-transform:uppercase;font-size:11px;letter-spacing:.08em;font-weight:700}
+.command-central-app .cc-feed{display:grid;gap:16px;margin-top:34px}
+.command-central-app .cc-feed-item{display:grid;grid-template-columns:150px 1fr auto;gap:24px;align-items:start;border-top:1px solid #3e4548;padding:24px 0}
+.command-central-app .cc-feed-item:last-child{border-bottom:1px solid #3e4548}
+.command-central-app .cc-feed-stream{color:#86ddff;text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.13em}
+.command-central-app .cc-feed-item h3{font-size:24px;font-weight:500;letter-spacing:-.025em;margin:0 0 8px}
+.command-central-app .cc-feed-item p{color:#aeb6b8;font-size:16px;line-height:1.5;margin:0}
+.command-central-app .cc-feed-item a{color:#86ddff;text-decoration:none;font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.command-central-app .cc-back{display:inline-block;color:#86ddff;text-decoration:none;text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.12em;margin-bottom:28px}
+.command-central-app .cc-empty{border:1px solid #3e4548;padding:28px;color:#9ca6a9}
+
+@media(max-width:900px){
+  .command-central-app .cc-intro-grid{grid-template-columns:1fr;gap:40px}
+  .command-central-app .cc-desks,.command-central-app .cc-live-grid{grid-template-columns:1fr 1fr}
+  .command-central-app .cc-feed-item{grid-template-columns:110px 1fr}
+  .command-central-app .cc-feed-item>a{grid-column:2}
+}
+@media(max-width:620px){
+  .command-central-app .cc-foundation,.command-central-app .cc-watchtower,.command-central-app .cc-live-zone{padding:72px 0}
+  .command-central-app .cc-desks,.command-central-app .cc-live-grid{grid-template-columns:1fr}
+  .command-central-app .cc-feed-item{grid-template-columns:1fr;gap:8px}
+  .command-central-app .cc-feed-item>a{grid-column:1}
+  .command-central-app .cc-live-zone h2{font-size:48px}
+}
