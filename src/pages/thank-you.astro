@@ -1,3 +1,47 @@
 ---
-return Astro.redirect('/thank-you.html', 302);
 ---
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="refresh" content="10;url=/">
+    <title>Terrain Received | Expedition Growth Lab</title>
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp">
+    <link rel="stylesheet" href="/institutional.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"></a>
+      </div>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <div class="eyebrow">Growth Terrain Assessment</div>
+          <h1 class="display">Terrain<br>received.</h1>
+          <p class="hero-copy">We’ll review the load, friction, and next move you described. Expect a human follow-up from Expedition Growth Lab—usually within one business day.</p>
+          <p class="hero-copy" style="font-size:17px">Returning you to Expedition Growth Lab in <strong id="countdown">10</strong> seconds.</p>
+          <a class="button gold" href="/" style="margin-top:24px">Return to XGL Now</a>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div>
+          <img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab">
+          <div class="footer-tagline">Protect the Build. Grow the Legacy.</div>
+          <div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div>
+        </div>
+      </div>
+    </footer>
+    <script is:inline>
+      const countdown = document.getElementById('countdown');
+      let seconds = 10;
+      window.setInterval(() => {
+        seconds -= 1;
+        if (countdown && seconds >= 0) countdown.textContent = String(seconds);
+      }, 1000);
+    </script>
+  </body>
+</html>
