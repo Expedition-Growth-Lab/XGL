@@ -3,7 +3,7 @@ import { createPublicClient } from '../../lib/supabase';
 const supabase = createPublicClient();
 const [{ data: events }, { data: intelligence }] = await Promise.all([
   supabase.from('events').select('id,slug,name,start_date,end_date,date_status,city,state,region,event_type,xgl_priority,registration_state,official_url,public_summary,xgl_relevance').eq('publication_status','published').order('start_date',{ascending:true,nullsFirst:false}),
-  supabase.from('intelligence_items').select('id,slug,headline,stream,summary,urgency,published_at,source_url,why_xgl_cares').eq('editorial_status','published').order('published_at',{ascending:false}).limit(12)
+  supabase.from('intelligence_items').select('id,slug,headline,stream,public_desk,watchtower_category,summary,urgency,published_at,source_url,why_xgl_cares').eq('editorial_status','published').order('published_at',{ascending:false}).limit(12)
 ]);
 const rows=events??[];
 const items=intelligence??[];
@@ -16,10 +16,10 @@ const signalLines=items.length?items.slice(0,6).map((s)=>s.headline):[
   `${tba.length} recurring events under date watch`
 ].filter(Boolean);
 const hasFieldSignal=items.length>0;
-const hasRegulatory=items.some((x)=>String(x.stream||'').toLowerCase().includes('regulatory'));
-const hasPublicLands=items.some((x)=>String(x.stream||'').toLowerCase().includes('public lands'));
-const hasBuilder=items.some((x)=>String(x.stream||'').toLowerCase().includes('builder'));
-const hasIndustry=items.some((x)=>String(x.stream||'').toLowerCase().includes('industry'));
+const hasRegulatory=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCase().includes('regulatory'));
+const hasPublicLands=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCase().includes('public lands'));
+const hasBuilder=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCase().includes('builder'));
+const hasIndustry=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCase().includes('industry'));
 ---
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Command Central | Expedition Growth Lab</title><link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp"><link rel="stylesheet" href="/institutional.css"><link rel="stylesheet" href="/command-central.css"></head>
 <body class="command-central-app">
@@ -46,7 +46,7 @@ const hasIndustry=items.some((x)=>String(x.stream||'').toLowerCase().includes('i
 <section class="cc-watchtower"><div class="wrap cc-watchtower-inner"><div class="eyebrow gray">Six Permanent Desks</div><h2 class="section-title">The watchtower<br>behind the signal.</h2><p class="copy" style="font-size:18px">Business Watch, Regulatory Watch, Economic Watch, Technology Watch, Community Watch, and Environmental Watch provide the organizing structure behind articles, alerts, Builder Briefs, and Field Signals. The public desks above are how that intelligence gets translated into something usable.</p><a class="button" href="/command-central/field-signal" style="margin-top:20px">Open Field Signal</a></div></section>
 
 <section class="cc-live-zone" id="latest"><div class="wrap"><div class="eyebrow">Latest Intelligence</div><h2>Field Signal</h2><p style="color:#aab3b5;max-width:760px;font-size:18px">Published intelligence from the Watchtower. Every item passes through the editorial room before it appears here.</p>
-{items.length ? <div class="cc-feed">{items.slice(0,5).map((item)=><article class="cc-feed-item"><div class="cc-feed-stream">{item.stream||'Field Signal'}</div><div><h3>{item.headline}</h3>{item.summary&&<p>{item.summary}</p>}</div><a href="/command-central/field-signal">Read Signal →</a></article>)}</div> : <div class="cc-empty">The Watchtower is online. Published Field Signals will appear here after editorial review.</div>}
+{items.length ? <div class="cc-feed">{items.slice(0,5).map((item)=><article class="cc-feed-item"><div class="cc-feed-stream">{item.public_desk||item.stream||'Field Signal'}</div><div><h3>{item.headline}</h3>{item.summary&&<p>{item.summary}</p>}</div><a href="/command-central/field-signal">Read Signal →</a></article>)}</div> : <div class="cc-empty">The Watchtower is online. Published Field Signals will appear here after editorial review.</div>}
 </div></section>
 
 <section class="cc-live-zone" id="events" style="padding-top:40px"><div class="wrap"><div class="eyebrow">Live Terrain</div><h2>Event Calendar</h2><p style="color:#aab3b5;max-width:760px;font-size:18px">Verified event intelligence from Command Central. Confirmed dates publish as confirmed; unknown dates remain honestly marked TBA.</p><div class="cc-live-grid">{rows.map((event)=><article class="cc-live-card"><div class="cc-live-date">{event.date_status==='confirmed'?formatDate(event.start_date):'Date Watch / TBA'}</div><h3>{event.name}</h3><div class="cc-live-meta">{[event.city,event.state,event.region].filter(Boolean).join(' · ')}</div><p>{event.public_summary}</p>{event.xgl_relevance&&<div class="why"><strong>Why XGL cares:</strong> {event.xgl_relevance}</div>}<a href={`/command-central/events/${event.slug}`}>Open Event Brief →</a></article>)}</div></div></section>
