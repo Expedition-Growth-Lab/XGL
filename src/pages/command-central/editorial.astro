@@ -47,6 +47,11 @@
       .briefbody { padding:0 .8rem .85rem; color:#bcc8d4; white-space:pre-wrap; line-height:1.55; font-size:.82rem; }
       .why { margin-top:.7rem; padding:.7rem .8rem; border-left:3px solid #5e748c; background:#101720; color:#aebdca; font-size:.82rem; line-height:1.5; }
       .meta { margin-top:.55rem; color:#738398; font-size:.74rem; }
+      .routing { margin-top:.75rem; padding:.7rem; border:1px solid #2d3b4c; border-radius:10px; background:#0f151d; }
+      .routing-title { font-weight:800; color:#d9e2eb; margin-bottom:.45rem; font-size:.8rem; }
+      .routing-grid { display:grid; grid-template-columns:1fr 1fr auto; gap:.45rem; align-items:center; }
+      .routing select { width:100%; background:#151d26; color:#eef2f6; border:1px solid #344155; border-radius:8px; padding:.55rem .6rem; font-size:.78rem; }
+      .routing-help { margin-top:.45rem; color:#7f90a4; font-size:.72rem; line-height:1.4; }
       .hidden { display:none !important; }
       @media(max-width:900px){ .row { grid-template-columns:1fr; } .head { display:none; } .guide-grid { grid-template-columns:1fr 1fr; } }
       @media(max-width:600px){ .guide-grid { grid-template-columns:1fr; } }
@@ -86,7 +91,8 @@
             <div class="guide-item"><b>Hold for later</b>Potentially useful, but not ready or not timely. Park it without rejecting it.</div>
             <div class="guide-item"><b>Reject / archive</b>Noise, duplicate, irrelevant, wrong, or not worth publishing. Remove it from the working queue.</div>
           </div>
-          <div class="small" style="margin-top:.8rem"><strong>Remove from public</strong> only appears for something already published; use it when the information should no longer be visible.</div>
+          <div class="small" style="margin-top:.8rem"><strong>Watchtower vs. public desk:</strong> Watchtower is where the signal is collected and understood internally. The public desk is where readers encounter it. Example: a BLM access rule may originate in <strong>Regulatory Watch</strong> or <strong>Environmental Watch</strong> and publish through <strong>Public Lands Watch</strong>. The machine will suggest routing; you can override it when judgment says otherwise.</div>
+          <div class="small" style="margin-top:.55rem"><strong>Remove from public</strong> only appears for something already published; use it when the information should no longer be visible.</div>
         </div>
         <div class="toolbar">
           <button data-filter="all" class="primary">Working Queue</button>
@@ -159,6 +165,25 @@
         return 'Read the item and its source, then choose the action that best matches the evidence. The Watchtower category tells you where the signal was collected; the public desk tells you how readers will encounter it.';
       }
 
+      const watchtowerCategories = ['Business Watch','Regulatory Watch','Economic Watch','Technology Watch','Community Watch','Environmental Watch'];
+      const publicDesks = ['Field Signal','Regulatory Watch','Public Lands Watch','Builder Intelligence','Industry Headlines','Emergency Response','Event Calendar','Inside the Lab'];
+
+      function routingControls(item) {
+        if (item.kind !== 'intelligence') return '';
+        const options = (values, current) => values.map((value) =>
+          '<option value="' + escapeHtml(value) + '" ' + (value === current ? 'selected' : '') + '>' + escapeHtml(value) + '</option>'
+        ).join('');
+        return '<div class="routing">' +
+          '<div class="routing-title">Signal routing</div>' +
+          '<div class="routing-grid">' +
+          '<select data-route-watchtower aria-label="Watchtower category">' + options(watchtowerCategories, item.watchtower_category) + '</select>' +
+          '<select data-route-desk aria-label="Public desk">' + options(publicDesks, item.public_desk || item.stream) + '</select>' +
+          '<button data-route-save>Save</button>' +
+          '</div>' +
+          '<div class="routing-help">Left = internal Watchtower origin. Right = public-facing desk/output.</div>' +
+          '</div>';
+      }
+
       function actionButtons(item) {
         if (isHistory(item)) return '<div class="small">Archived. No action required.</div>';
 
@@ -221,6 +246,7 @@
               ${item.kind === 'intelligence' ? badge(item.watchtower_category ? `Watchtower: ${item.watchtower_category}` : '') : ''}
               ${badge(item.geography || item.region)}
               ${item.source_url ? `<div style="margin-top:.55rem"><a href="${item.source_url}" target="_blank" rel="noreferrer">Open the official/source page ↗</a></div>` : '<div style="margin-top:.55rem">No source link attached.</div>'}
+              ${routingControls(item)}
             </div>
             <div class="actions">
               ${actionButtons(item)}
@@ -288,6 +314,29 @@
       }
 
       queue?.addEventListener('click', async (event) => {
+        const routeButton = event.target.closest('button[data-route-save]');
+        if (routeButton) {
+          const row = routeButton.closest('[data-id]');
+          const target_id = row.dataset.id;
+          const watchtower_category = row.querySelector('[data-route-watchtower]')?.value;
+          const public_desk = row.querySelector('[data-route-desk]')?.value;
+          routeButton.disabled = true;
+          routeButton.textContent = 'Saving…';
+          const { error } = await supabase.rpc('command_central_route_staff', {
+            target_id,
+            watchtower_category,
+            public_desk
+          });
+          routeButton.disabled = false;
+          routeButton.textContent = 'Save';
+          if (error) {
+            alert(error.message || 'Routing update failed.');
+            return;
+          }
+          await loadData();
+          return;
+        }
+
         const button = event.target.closest('button[data-action]');
         if (!button) return;
         const row = button.closest('[data-id]');
