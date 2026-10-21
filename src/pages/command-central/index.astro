@@ -1,21 +1,18 @@
 ---
 import { createPublicClient } from '../../lib/supabase';
 const supabase = createPublicClient();
-const [{ data: events }, { data: intelligence }, { data: sources }, { data: pipeline }] = await Promise.all([
+const [{ data: events }, { data: intelligence }, { data: publicStatus }] = await Promise.all([
   supabase.from('events').select('id,slug,name,start_date,end_date,date_status,city,state,region,event_type,xgl_priority,registration_state,official_url,public_summary,xgl_relevance').eq('publication_status','published').order('start_date',{ascending:true,nullsFirst:false}),
   supabase.from('intelligence_items').select('id,slug,headline,stream,public_desk,watchtower_category,summary,urgency,published_at,source_url,why_xgl_cares').eq('editorial_status','published').order('published_at',{ascending:false}).limit(12),
-  supabase.from('sources').select('id,stream,watchtower_category,active').eq('active',true),
-  supabase.from('intelligence_items').select('id,editorial_status,public_desk,stream').not('editorial_status','in','("killed","archived")')
+  supabase.rpc('command_central_public_status')
 ]);
 const rows=events??[];
 const items=intelligence??[];
-const activeSources=sources??[];
-const pipelineItems=pipeline??[];
-const sourceCount=(desk)=>activeSources.filter((s)=>s.stream===desk).length;
-const pipelineCount=(desk)=>pipelineItems.filter((i)=>(i.public_desk||i.stream)===desk).length;
-const regulatorySources=sourceCount('Regulatory Watch');
-const publicLandsSources=sourceCount('Public Lands Watch');
-const eventSources=sourceCount('Event Calendar');
+const status=publicStatus??{};
+const pipelineItems=Number(status.pipeline_items??0);
+const regulatorySources=Number(status.regulatory_sources??0);
+const publicLandsSources=Number(status.public_lands_sources??0);
+const eventSources=Number(status.event_sources??0);
 const confirmed=rows.filter((e)=>e.date_status==='confirmed');
 const tba=rows.filter((e)=>e.date_status==='dates_tba');
 const formatDate=(value)=>value?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(value+'T12:00:00Z')):'TBA';
@@ -39,7 +36,7 @@ const hasIndustry=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCas
 <section class="cc-foundation"><div class="wrap"><div class="cc-intro-grid"><div><div class="eyebrow">Foundation Release</div><h2 class="section-title">News is cheap.<br>Meaning is useful.</h2></div><div class="cc-intro-copy">Every desk is governed by one practical question: what does this mean for builders, employees, customers, clubs, and communities?</div></div>
 
 <div class="cc-desks">
-<a class="cc-desk" href="/command-central/field-signal"><h3>Field Signal</h3><p>Important developments distilled into a short, useful operating brief.</p><span class:list={["cc-status",(hasFieldSignal||pipelineItems.length)&&"live"]}>{hasFieldSignal?"Published Live":pipelineItems.length?"Editorial Pipeline Live":"Desk Forming"}</span></a>
+<a class="cc-desk" href="/command-central/field-signal"><h3>Field Signal</h3><p>Important developments distilled into a short, useful operating brief.</p><span class:list={["cc-status",(hasFieldSignal||pipelineItems)&&"live"]}>{hasFieldSignal?"Published Live":pipelineItems?"Editorial Pipeline Live":"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#regulatory-watch"><h3>Regulatory Watch</h3><p>Rules, agencies, proposals, and compliance terrain translated for builders.</p><span class:list={["cc-status",(hasRegulatory||regulatorySources)&&"live"]}>{hasRegulatory?"Published Live":regulatorySources?`Monitoring Live · ${regulatorySources} sources`:"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#public-lands-watch"><h3>Public Lands Watch</h3><p>Access, stewardship, closures, planning, and policy affecting where the community travels.</p><span class:list={["cc-status",(hasPublicLands||publicLandsSources)&&"live"]}>{hasPublicLands?"Published Live":publicLandsSources?`Monitoring Live · ${publicLandsSources} sources`:"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#builder-intelligence"><h3>Builder Intelligence</h3><p>Signals from manufacturing, supply chains, safety, trade, technology, and the market.</p><span class:list={["cc-status",hasBuilder&&"live"]}>{hasBuilder?"Live":"Desk Forming"}</span></a>
