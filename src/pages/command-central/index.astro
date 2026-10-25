@@ -13,6 +13,10 @@ const pipelineItems=Number(status.pipeline_items??0);
 const regulatorySources=Number(status.regulatory_sources??0);
 const publicLandsSources=Number(status.public_lands_sources??0);
 const eventSources=Number(status.event_sources??0);
+const builderSources=Number(status.builder_sources??0);
+const industrySources=Number(status.industry_sources??0);
+const emergencySources=Number(status.emergency_sources??0);
+const insideLabSources=Number(status.inside_lab_sources??0);
 const confirmed=rows.filter((e)=>e.date_status==='confirmed');
 const tba=rows.filter((e)=>e.date_status==='dates_tba');
 const formatDate=(value)=>value?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(value+'T12:00:00Z')):'TBA';
@@ -39,11 +43,11 @@ const hasIndustry=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCas
 <a class="cc-desk" href="/command-central/field-signal"><h3>Field Signal</h3><p>Important developments distilled into a short, useful operating brief.</p><span class:list={["cc-status",(hasFieldSignal||pipelineItems)&&"live"]}>{hasFieldSignal?"Published Live":pipelineItems?"Editorial Pipeline Live":"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#regulatory-watch"><h3>Regulatory Watch</h3><p>Rules, agencies, proposals, and compliance terrain translated for builders.</p><span class:list={["cc-status",(hasRegulatory||regulatorySources)&&"live"]}>{hasRegulatory?"Published Live":regulatorySources?`Monitoring Live · ${regulatorySources} sources`:"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#public-lands-watch"><h3>Public Lands Watch</h3><p>Access, stewardship, closures, planning, and policy affecting where the community travels.</p><span class:list={["cc-status",(hasPublicLands||publicLandsSources)&&"live"]}>{hasPublicLands?"Published Live":publicLandsSources?`Monitoring Live · ${publicLandsSources} sources`:"Desk Forming"}</span></a>
-<a class="cc-desk" href="/command-central/field-signal#builder-intelligence"><h3>Builder Intelligence</h3><p>Signals from manufacturing, supply chains, safety, trade, technology, and the market.</p><span class:list={["cc-status",hasBuilder&&"live"]}>{hasBuilder?"Live":"Desk Forming"}</span></a>
-<a class="cc-desk" href="/command-central/field-signal#industry-headlines"><h3>Industry Headlines</h3><p>Curated news without the panic machine or the press-release confetti cannon.</p><span class:list={["cc-status",hasIndustry&&"live"]}>{hasIndustry?"Live":"Desk Forming"}</span></a>
+<a class="cc-desk" href="/command-central/field-signal#builder-intelligence"><h3>Builder Intelligence</h3><p>Signals from manufacturing, supply chains, safety, trade, technology, and the market.</p><span class:list={["cc-status",(hasBuilder||builderSources)&&"live"]}>{hasBuilder?"Published Live":builderSources?`Monitoring Live · ${builderSources} sources`:"Desk Forming"}</span></a>
+<a class="cc-desk" href="/command-central/field-signal#industry-headlines"><h3>Industry Headlines</h3><p>Curated news without the panic machine or the press-release confetti cannon.</p><span class:list={["cc-status",(hasIndustry||industrySources)&&"live"]}>{hasIndustry?"Published Live":industrySources?`Monitoring Live · ${industrySources} sources`:"Desk Forming"}</span></a>
 <a class="cc-desk" href="#events"><h3>Event Calendar</h3><p>Shows, rallies, training, community gatherings, and useful dates across the field.</p><span class="cc-status live">{eventSources?`Live · ${eventSources} monitored sources`:"Live"}</span></a>
-<a class="cc-desk" href="/command-central/field-signal#emergency-response"><h3>Emergency Response</h3><p>Practical visibility when fires, storms, closures, recalls, or disruptions affect the community.</p><span class="cc-status">Desk Forming</span></a>
-<a class="cc-desk" href="/command-central/field-signal#inside-the-lab"><h3>Inside the Lab</h3><p>Field notes, methods, experiments, and lessons from the work itself.</p><span class="cc-status">Desk Forming</span></a>
+<a class="cc-desk" href="/command-central/field-signal#emergency-response"><h3>Emergency Response</h3><p>Practical visibility when fires, storms, closures, recalls, or disruptions affect the community.</p><span class:list={["cc-status",emergencySources&&"live"]}>{emergencySources?`Monitoring Live · ${emergencySources} source${emergencySources===1?"":"s"}`:"Desk Forming"}</span></a>
+<a class="cc-desk" href="/command-central/field-signal#inside-the-lab"><h3>Inside the Lab</h3><p>Field notes, methods, experiments, and lessons from the work itself.</p><span class:list={["cc-status",insideLabSources&&"live"]}>{insideLabSources?`Monitoring Live · ${insideLabSources} source${insideLabSources===1?"":"s"}`:"Desk Forming"}</span></a>
 </div>
 
 <div class="cc-signal-strip"><b>Field Signal</b>{signalLines.map((line)=><span>{line}</span>)}</div>
