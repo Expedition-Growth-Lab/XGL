@@ -8,28 +8,35 @@
     <title>Command Central Login | Expedition Growth Lab</title>
     <style>
       :root { font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#f7f8fa; }
+      * { box-sizing:border-box; }
       body { margin:0; min-height:100vh; display:grid; place-items:center; padding:1.5rem; }
       .panel { width:min(520px,100%); padding:2rem; border:1px solid #2a3545; border-radius:20px; background:#141a22; }
       h1 { margin:.4rem 0 1rem; font-size:2.2rem; }
       p { color:#aeb9c7; line-height:1.55; }
-      label { display:block; margin:1.5rem 0 .45rem; color:#cbd5e1; }
-      input { width:100%; padding:.85rem 1rem; border-radius:10px; border:1px solid #354154; background:#0f141b; color:white; }
-      button { margin-top:1rem; width:100%; padding:.9rem 1rem; border:0; border-radius:10px; background:#e9edf3; color:#10161d; font-weight:800; cursor:pointer; }
+      label { display:block; margin:1.25rem 0 .45rem; color:#cbd5e1; }
+      input { width:100%; padding:.85rem 1rem; border-radius:10px; border:1px solid #354154; background:#0f141b; color:white; font:inherit; }
+      button { margin-top:1.25rem; width:100%; padding:.9rem 1rem; border:0; border-radius:10px; background:#e9edf3; color:#10161d; font-weight:800; cursor:pointer; font:inherit; }
+      button:disabled { opacity:.65; cursor:wait; }
       .status { margin-top:1rem; min-height:1.5rem; color:#a8d3ad; }
+      .status.error { color:#efaaaa; }
       .eyebrow { text-transform:uppercase; letter-spacing:.17em; font-size:.75rem; color:#8494a7; }
+      .note { margin-top:1.35rem; padding-top:1.1rem; border-top:1px solid #273241; font-size:.9rem; }
     </style>
   </head>
   <body>
     <main class="panel">
       <div class="eyebrow">Private XGL Back Office</div>
       <h1>Editorial Room</h1>
-      <p>Enter an authorized XGL email address. Command Central will send a secure sign-in link.</p>
+      <p>Sign in with your authorized XGL email address and password.</p>
       <form id="login-form">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="email" required />
-        <button type="submit">Send sign-in link</button>
+        <input id="email" name="email" type="email" autocomplete="username" required />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <button id="submit-button" type="submit">Sign in</button>
       </form>
       <div id="status" class="status" aria-live="polite"></div>
+      <p class="note">Command Central access is limited to active XGL staff accounts.</p>
     </main>
 
     <script>
@@ -38,27 +45,41 @@
       const supabase = createBrowserClient();
       const form = document.querySelector('#login-form');
       const status = document.querySelector('#status');
+      const button = document.querySelector('#submit-button');
       const requestedNext = new URLSearchParams(window.location.search).get('next');
+      const setupComplete = new URLSearchParams(window.location.search).get('setup') === 'complete';
       const nextPath = requestedNext && requestedNext.startsWith('/command-central/')
         ? requestedNext
         : '/command-central/editorial';
 
+      if (setupComplete && status) {
+        status.textContent = 'Password saved. Sign in below.';
+      }
+
       form?.addEventListener('submit', async (event) => {
         event.preventDefault();
         const email = document.querySelector('#email')?.value?.trim();
-        if (!email) return;
+        const password = document.querySelector('#password')?.value;
+        if (!email || !password) return;
 
-        status.textContent = 'Sending secure sign-in link…';
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: window.location.origin + nextPath
+        if (status) {
+          status.classList.remove('error');
+          status.textContent = 'Signing in…';
+        }
+        if (button) button.disabled = true;
+
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          if (status) {
+            status.classList.add('error');
+            status.textContent = 'Sign-in failed. Check your email address and password.';
           }
-        });
+          if (button) button.disabled = false;
+          return;
+        }
 
-        status.textContent = error
-          ? 'Sign-in link could not be sent.'
-          : 'Check your email for the secure sign-in link.';
+        window.location.assign(nextPath);
       });
     </script>
   </body>
