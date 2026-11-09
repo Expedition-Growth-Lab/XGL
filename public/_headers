@@ -1,0 +1,7 @@
+/one-rising-sun/founding-documents
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store
+
+/private-assets/one-rising-sun/founding-documents/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store

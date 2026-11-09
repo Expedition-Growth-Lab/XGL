@@ -1,0 +1,37 @@
+---
+const documents = [
+  { volume: "Volume I", title: "Constitutional Core", scope: "Documents 1–8 · 17 pages", description: "Structural architecture, Founding Charter, principles, non-capture, independence, membership definitions, and reserved powers.", file: "One_Rising_Sun_Wave_1_Constitutional_Core" },
+  { volume: "Volume II", title: "Membership System", scope: "Documents 9–21 · 19 pages", description: "Eligibility, benefits, responsibilities, application, diligence, conditional admission, renewal, appeals, and the member handbook.", file: "One_Rising_Sun_Wave_2_Membership_System" },
+  { volume: "Volume III", title: "Agreement Suite", scope: "Documents 22–39 · 49 pages", description: "Membership, confidentiality, Steward, capability, project, contribution, equipment, media, marks, exit, and change-of-control agreements.", file: "One_Rising_Sun_Wave_2_Agreement_Suite" },
+  { volume: "Volume IV", title: "Governance & Compliance Manual", scope: "Documents 40–57 · 22 pages", description: "Conduct, conflicts, antitrust, purchasing, truthful claims, investigations, privacy, safety, financial stewardship, and transparency.", file: "One_Rising_Sun_Wave_2_Governance_and_Compliance" },
+];
+const assetRoot = "/private-assets/one-rising-sun/founding-documents";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>One Rising Sun Founding Documents | Expedition Growth Lab</title>
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <link rel="stylesheet" href="/institutional.css" />
+    <style>
+      .docs-hero{min-height:460px;padding:110px 0 80px;display:flex;align-items:flex-end;background:linear-gradient(120deg,#0b0d0e 0%,#132f38 70%,#6c2c16 140%)}
+      .docs-hero h1{margin:0;max-width:960px;font-size:clamp(54px,8vw,104px);font-weight:300;letter-spacing:-.055em;line-height:.92}.docs-hero p{max-width:760px;margin:28px 0 0;color:#c7c9c8;font-size:20px;line-height:1.55}
+      .docs-notice{border-left:4px solid #f26128;margin-bottom:44px;padding:22px 26px;background:#f6e8e2;color:#3b2924;font-size:17px;line-height:1.5}
+      .docs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.doc-card{display:flex;min-height:360px;flex-direction:column;border:1px solid #c9c0b3;padding:32px;background:#f3eee6}
+      .doc-volume{color:#b84220;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.doc-card h2{margin:30px 0 6px;font-size:clamp(30px,4vw,46px);font-weight:400;letter-spacing:-.045em;line-height:1}.doc-scope{color:#716b63;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.doc-card p{margin:24px 0 34px;color:#3c3d3d;font-size:17px;line-height:1.5}
+      .doc-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}.doc-actions a{display:inline-block;border:1px solid #1c2021;padding:13px 16px;color:#1c2021;font-size:11px;font-weight:700;letter-spacing:.07em;text-decoration:none;text-transform:uppercase}.doc-actions a:first-child{border-color:#f26128;background:#f26128;color:#111}.docs-back{display:inline-block;margin-top:44px;color:#742812;font-size:12px;font-weight:700;letter-spacing:.08em;text-decoration:none;text-transform:uppercase}
+      @media(max-width:760px){.docs-grid{grid-template-columns:1fr}.docs-hero{min-height:400px;padding-top:90px}}
+    </style>
+  </head>
+  <body>
+    <header class="site-header"><div class="wrap"><a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a><nav class="nav" aria-label="Primary navigation"><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a class="active" href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></nav><a class="assessment-cta" href="/assessment">Start Assessment</a><details class="mobile-menu"><summary>Menu</summary><div class="mobile-menu-panel"><a href="/">Home</a><a href="/one-rising-sun">One Rising Sun</a><a href="/contact">Contact</a></div></details></div></header>
+    <main>
+      <section class="docs-hero"><div class="wrap"><div class="eyebrow">One Rising Sun Reference Library</div><h1>Founding documents.</h1><p>The working architecture behind a trusted alliance of independent builders, makers, operators, service partners, and Stewards.</p></div></section>
+      <section class="section cream"><div class="wrap"><div class="docs-notice"><strong>Working drafts—not executed agreements.</strong> These materials are provided for review and understanding. Bracketed terms require business decisions, and every executable instrument requires appropriate legal, tax, antitrust, insurance, and privacy review.</div><div class="docs-grid">{documents.map((document) => (<article class="doc-card"><div class="doc-volume">{document.volume}</div><h2>{document.title}</h2><div class="doc-scope">{document.scope}</div><p>{document.description}</p><div class="doc-actions"><a href={`${assetRoot}/${document.file}.pdf`} target="_blank" rel="noopener">Read PDF</a><a href={`${assetRoot}/${document.file}.docx`} download>Download Word</a></div></article>))}</div><a class="docs-back" href="/one-rising-sun">← Return to One Rising Sun</a></div></section>
+    </main>
+    <footer class="footer"><div class="wrap footer-grid"><div><img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /><div class="footer-tagline">Protect the Build. Grow the Legacy.</div><div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div></div><div><h4>Explore</h4><a href="/one-rising-sun">One Rising Sun</a><a href="/command-central">Command Central</a><a href="/the-lab">The Lab</a></div><div><h4>Company</h4><a href="/about">About XGL</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer><script src="/site.js" defer></script>
+  </body>
+</html>
