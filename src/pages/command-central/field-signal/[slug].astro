@@ -1,0 +1,76 @@
+---
+import { createPublicClient } from '../../../lib/supabase';
+
+const { slug } = Astro.params;
+const supabase = createPublicClient();
+
+const { data: item } = await supabase
+  .from('intelligence_items')
+  .select('slug,headline,summary,public_body,public_desk,stream,watchtower_category,why_xgl_cares,source_url,geography,published_at,urgency')
+  .eq('slug', slug)
+  .eq('editorial_status','published')
+  .not('headline','ilike','Review source change:%')
+  .maybeSingle();
+
+if (!item || !item.public_body) {
+  return Astro.redirect('/command-central/field-signal');
+}
+
+const formatPublished=(v)=>v?new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date(v)):'';
+const paragraphs=String(item.public_body)
+  .split(/\n{2,}/)
+  .map((p)=>p.trim())
+  .filter(Boolean);
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>{item.headline} | Field Signal | Expedition Growth Lab</title>
+  <meta name="description" content={item.summary || item.headline}>
+  <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp">
+  <link rel="stylesheet" href="/institutional.css">
+  <link rel="stylesheet" href="/command-central.css">
+</head>
+<body class="command-central-app">
+<header class="site-header"><div class="wrap"><a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"></a><nav class="nav"><a href="/the-lab">The Lab</a><a class="active" href="/command-central">Command Central</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></nav><a class="assessment-cta" href="/assessment">Start Assessment</a><details class="mobile-menu"><summary>Menu</summary><div class="mobile-menu-panel"><a href="/">Home</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></div></details></div></header>
+
+<main>
+  <section class="cc-article-hero">
+    <div class="wrap cc-article-wrap">
+      <a class="cc-back" href="/command-central/field-signal">← Back to Field Signal</a>
+      <div class="cc-story-meta">
+        <span>{item.public_desk||item.stream||'Field Signal'}</span>
+        {item.geography&&<span>{item.geography}</span>}
+        {item.published_at&&<span>{formatPublished(item.published_at)}</span>}
+      </div>
+      <h1>{item.headline}</h1>
+      {item.summary&&<p class="cc-article-deck">{item.summary}</p>}
+    </div>
+  </section>
+
+  <section class="cc-article-body">
+    <div class="wrap cc-article-layout">
+      <article class="cc-article-copy">
+        {paragraphs.map((paragraph)=><p>{paragraph}</p>)}
+      </article>
+
+      <aside class="cc-article-aside">
+        {item.why_xgl_cares&&<div class="cc-article-note">
+          <div class="eyebrow gray">Why XGL cares</div>
+          <p>{item.why_xgl_cares}</p>
+        </div>}
+        {item.source_url&&<div class="cc-article-note">
+          <div class="eyebrow gray">Source</div>
+          <p>This signal is grounded in the linked source material.</p>
+          <a href={item.source_url} target="_blank" rel="noreferrer">Open primary/source page ↗</a>
+        </div>}
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><div class="wrap footer-grid"><div><img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"><div class="footer-tagline">Protect the Build. Grow the Legacy.</div><div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div></div><div><h4>Explore</h4><a href="/assessment">Growth Terrain Assessment</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a></div><div><h4>Company</h4><a href="/about">About XGL</a><a href="/faq">FAQ</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>
+<script src="/site.js" defer></script>
+</body>
+</html>
