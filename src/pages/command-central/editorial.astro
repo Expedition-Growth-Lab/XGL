@@ -107,6 +107,7 @@
           <button data-filter="all" class="primary">Working Queue</button>
           <button data-filter="intelligence">Intelligence</button>
           <button data-filter="event">Events</button>
+          <button data-filter="hold">Held</button>
           <button data-filter="history">History</button>
           <button id="refresh">Refresh</button>
         </div>
@@ -241,7 +242,8 @@
       function render() {
         const visible = records.filter((item) => {
           if (activeFilter === 'history') return isHistory(item);
-          if (isHistory(item)) return false;
+          if (activeFilter === 'hold') return item.status === 'hold';
+          if (isHistory(item) || item.status === 'hold') return false;
           return activeFilter === 'all' || item.kind === activeFilter;
         });
 
