@@ -74,6 +74,96 @@ function excerpt(value: string) {
   return value.length > 240 ? value.slice(0, 237) + "…" : value;
 }
 
+function stripTags(value: string) {
+  let out = "";
+  let inTag = false;
+  for (const ch of decodeEntities(value || "")) {
+    if (ch === "<") { inTag = true; out += " "; continue; }
+    if (ch === ">") { inTag = false; out += " "; continue; }
+    if (!inTag) out += ch;
+  }
+  return out.split(/\\s+/).filter(Boolean).join(" ").trim();
+}
+
+function xmlValue(raw: string, tag: string) {
+  const open = "<" + tag + ">";
+  const close = "</" + tag + ">";
+  const start = raw.indexOf(open);
+  if (start < 0) return "";
+  const end = raw.indexOf(close, start + open.length);
+  if (end < 0) return "";
+  return stripTags(raw.slice(start + open.length, end));
+}
+
+function buildSourceBrief(source: any, diff: { added: string[]; removed: string[] }) {
+  const added = diff.added || [];
+  let title = "";
+  let articleUrl = source.url;
+
+  for (const raw of added) {
+    if (!title) title = xmlValue(raw, "title") || title;
+    const link = xmlValue(raw, "link");
+    if (link && link.startsWith("http")) articleUrl = link;
+  }
+
+  const sourceName = source.name || "Source";
+  if (!title) {
+    if (sourceName.includes("National Interagency Fire Center")) title = "National Fire Activity Update";
+    else if (sourceName.includes("EIA Gasoline & Diesel")) title = "U.S. Gasoline and Diesel Fuel Update";
+    else {
+      const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      const candidate = added
+        .map(stripTags)
+        .find((x) =>
+          x.length >= 18 &&
+          x.length <= 160 &&
+          !x.startsWith("No clean added-text") &&
+          !x.startsWith("http") &&
+          !months.some((month) => x.startsWith(month))
+        );
+      title = candidate || (sourceName + ": Source update");
+    }
+  }
+
+  const facts = added
+    .map(stripTags)
+    .filter(Boolean)
+    .filter((x) => x !== title)
+    .filter((x) => !x.startsWith("No clean added-text"))
+    .filter((x) => !x.startsWith("http"))
+    .filter((x) => !x.startsWith("pubDate"))
+    .filter((x) => !x.startsWith("guid"))
+    .filter((x) => !x.startsWith("dc:creator"))
+    .filter((x) => !x.includes("min read"))
+    .filter((x) => x.length >= 18 && x.length <= 220)
+    .slice(0, 3);
+
+  const detected = new Intl.DateTimeFormat("en-US", {
+    month: "short", day: "numeric", year: "numeric", timeZone: "UTC"
+  }).format(new Date());
+
+  let summary = sourceName + " posted an update concerning " + title + ". Command Central detected the change on " + detected + ".";
+  if (title === "National Fire Activity Update" && facts.length) {
+    summary = sourceName + " posted a national fire-activity update. " + facts.slice(0, 2).join(" ");
+  } else if (title === "U.S. Gasoline and Diesel Fuel Update" && facts.length) {
+    summary = "The U.S. Energy Information Administration posted its latest gasoline and diesel fuel update. " + facts.slice(0, 2).join(" ");
+  }
+
+  const bodyParts = [summary];
+  if (facts.length) {
+    bodyParts.push("Key details reported by the source:\n" + facts.map((f) => "• " + f).join("\n"));
+  }
+  bodyParts.push("For the complete notice, context, and any operational details, use the source link below.");
+
+  return {
+    title,
+    summary,
+    body: bodyParts.join("\n\n"),
+    articleUrl
+  };
+}
+
+
 function hasMaterialLanguage(items: string[]) {
   const text = items.join(" ").toLowerCase();
   return /(deadline|registration|register|date|dates|cancel|closed|closure|permit|recall|rule|final rule|effective|comment period|application|vendor|exhibitor|sponsor|fee|price|schedule|location|venue|access)/.test(text);
@@ -242,9 +332,8 @@ Deno.serve(async (req) => {
           reviewInstruction,
         ].join("\n");
 
-        const summary = added.length || removed.length
-          ? `Command Central found ${added.length} added/changed text snippet(s) and ${removed.length} removed/replaced snippet(s) at “${source.name}.” Review the before/after evidence below instead of hunting the whole page.`
-          : `Command Central detected a source change at “${source.name},” but the text extractor could not isolate a clean snippet. Open the source and review it as a possible structural or non-text change.`;
+        const brief = buildSourceBrief(source, diff);
+        const summary = brief.summary;
 
         const slug = `source-change-${source.id}-${fingerprint.slice(0, 12)}`;
         const { data: item, error: itemError } = await admin
@@ -252,7 +341,7 @@ Deno.serve(async (req) => {
           .upsert({
             slug,
             stream: source.stream,
-            headline: `Review source change: ${source.name}`,
+            headline: brief.title,
             summary,
             source_quality: ["official_website", "api", "rss"].includes(source.source_type)
               ? "primary"
@@ -260,8 +349,9 @@ Deno.serve(async (req) => {
             urgency: material ? "high" : "medium",
             editorial_status: "needs_verification",
             why_xgl_cares: `This monitored source feeds ${source.stream}. The watcher detected a real text-level difference from the previous stored snapshot; the editor’s job is to decide whether the difference is materially relevant to XGL users.`,
-            public_body: publicBody,
-            source_url: source.url,
+            public_body: brief.body,
+            editorial_evidence: publicBody,
+            source_url: brief.articleUrl || source.url,
             source_id: source.id,
             change_flag: material ? "material" : "minor",
           }, { onConflict: "slug" })
