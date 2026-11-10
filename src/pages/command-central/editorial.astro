@@ -42,9 +42,12 @@
       .tag { display:inline-block; font-size:.74rem; border:1px solid #344155; border-radius:999px; padding:.25rem .48rem; margin:.15rem .2rem .15rem 0; color:#bac7d5; }
       .actions { display:flex; flex-wrap:wrap; gap:.4rem; }
       .state { margin:1rem 0; padding:.9rem 1rem; border-radius:12px; background:#141b24; border:1px solid #2a3545; }
+      .public-preview { margin-top:.8rem; border:1px solid #3c5367; border-radius:12px; background:#0f171f; padding:.9rem 1rem; }
+      .public-preview-title { color:#fff; font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.55rem; }
+      .public-preview-body { color:#d2dbe3; white-space:pre-wrap; line-height:1.6; font-size:.88rem; }
       .briefbox { margin-top:.7rem; border:1px solid #2d3b4c; border-radius:10px; background:#0f151d; overflow:hidden; }
-      .briefbox summary { cursor:pointer; padding:.7rem .8rem; color:#d9e2eb; font-weight:800; }
-      .briefbody { padding:0 .8rem .85rem; color:#bcc8d4; white-space:pre-wrap; line-height:1.55; font-size:.82rem; }
+      .briefbox summary { cursor:pointer; padding:.7rem .8rem; color:#9dabb8; font-weight:800; }
+      .briefbody { padding:0 .8rem .85rem; color:#8f9dab; white-space:pre-wrap; line-height:1.55; font-size:.78rem; }
       .why { margin-top:.7rem; padding:.7rem .8rem; border-left:3px solid #5e748c; background:#101720; color:#aebdca; font-size:.82rem; line-height:1.5; }
       .meta { margin-top:.55rem; color:#738398; font-size:.74rem; }
       .routing { margin-top:.75rem; padding:.7rem; border:1px solid #2d3b4c; border-radius:10px; background:#0f151d; }
@@ -160,7 +163,7 @@
         if (item.kind === 'intelligence') {
           if (item.status === 'needs_verification') return 'Recommended next step: open the source and confirm the specific claim. If true but not yet publication-ready, choose “Verified — keep private.” If the alert is noise or irrelevant, choose “Reject / archive.”';
           if (item.status === 'needs_commentary') return 'Recommended next step: the underlying fact is already worth keeping. Add or confirm XGL context, then choose “Publish now” when the wording is ready.';
-          if (item.status === 'verified') return 'Recommended next step: this has been fact-checked and is still private. Use “Edit public story” to turn the evidence into a reader-ready headline, lede, and article. Then publish when the wording and timing are right.';
+          if (item.status === 'verified') return 'Recommended next step: the public Source Brief is generated and still private. Read the preview, compare the source only if something looks wrong, then Publish now, Hold, or Reject. Use “Edit public story” only when you actually want to change the wording or add XGL context.';
           if (item.status === 'published') return 'This is already public. Leave it alone unless it is outdated or wrong; then use “Remove from public.”';
           if (item.status === 'hold') return 'This is parked. Revisit it when timing or evidence improves.';
         }
@@ -262,9 +265,14 @@
               <div class="small">${escapeHtml(item.summary || '')}</div>
               ${item.why_xgl_cares ? `<div class="why"><strong>Why XGL cares:</strong> ${escapeHtml(item.why_xgl_cares)}</div>` : ''}
               ${item.public_body ? `
-                <details class="briefbox" open>
-                  <summary>Evidence: what changed & what to inspect</summary>
-                  <div class="briefbody">${escapeHtml(item.public_body)}</div>
+                <div class="public-preview">
+                  <div class="public-preview-title">Public Source Brief preview</div>
+                  <div class="public-preview-body">${escapeHtml(item.public_body)}</div>
+                </div>` : ''}
+              ${item.editorial_evidence ? `
+                <details class="briefbox">
+                  <summary>Source evidence / machine diff</summary>
+                  <div class="briefbody">${escapeHtml(item.editorial_evidence)}</div>
                 </details>` : ''}
               <div class="recommend"><strong>What should I do?</strong><br>${escapeHtml(recommendation(item))}</div>
               ${storyEditor(item)}
@@ -314,6 +322,7 @@
             stream:x.stream, public_desk:x.public_desk, watchtower_category:x.watchtower_category, geography:x.geography, urgency:x.urgency,
             status:x.editorial_status, source_url:x.source_url,
             why_xgl_cares:x.why_xgl_cares, public_body:x.public_body,
+            editorial_evidence:x.editorial_evidence,
             detected_at:x.detected_at, change_flag:x.change_flag
           }))),
           ...((payload.events || []).map((x) => ({
