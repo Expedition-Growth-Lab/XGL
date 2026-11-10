@@ -120,3 +120,14 @@
   .command-central-app .cc-article-copy p{font-size:18px}
   .command-central-app .cc-article-aside{grid-template-columns:1fr}
 }
+
+
+/* Field Signal source + sharing footer */
+.command-central-app .cc-article-footer{margin-top:52px;padding-top:28px;border-top:1px solid #bdb5a8;display:grid;gap:28px}
+.command-central-app .cc-article-source a{display:inline-block;margin-top:8px;color:#285c6f;text-decoration:none;font-weight:700}
+.command-central-app .cc-share-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.command-central-app .cc-share-links a,
+.command-central-app .cc-share-links button{appearance:none;border:1px solid #aaa294;background:transparent;color:#2f3334;text-decoration:none;padding:9px 12px;font:inherit;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border-radius:0}
+.command-central-app .cc-share-links a:hover,
+.command-central-app .cc-share-links button:hover{border-color:#285c6f;color:#285c6f}
+.command-central-app .cc-share-status{min-height:1.2em;margin-top:8px;font-size:12px;color:#5c6466}
