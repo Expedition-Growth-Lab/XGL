@@ -6,7 +6,7 @@ const supabase = createPublicClient();
 
 const { data: item } = await supabase
   .from('intelligence_items')
-  .select('slug,headline,summary,public_body,public_desk,stream,watchtower_category,why_xgl_cares,source_url,geography,published_at,urgency')
+  .select('slug,headline,summary,public_body,public_desk,stream,watchtower_category,why_xgl_cares,source_url,source_id,geography,published_at,urgency')
   .eq('slug', slug)
   .eq('editorial_status','published')
   .not('headline','ilike','Review source change:%')
@@ -16,7 +16,14 @@ if (!item || !item.public_body) {
   return Astro.redirect('/command-central/field-signal');
 }
 
+let sourceName='Original source';
+if(item.source_id){
+  const {data:source}=await supabase.from('sources').select('name').eq('id',item.source_id).maybeSingle();
+  if(source?.name) sourceName=source.name;
+}
 const formatPublished=(v)=>v?new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',year:'numeric'}).format(new Date(v)):'';
+const shareUrl=new URL(Astro.url.pathname, Astro.site).toString();
+const shareTitle=item.headline;
 const paragraphs=String(item.public_body)
   .split(/\n{2,}/)
   .map((p)=>p.trim())
@@ -53,6 +60,26 @@ const paragraphs=String(item.public_body)
     <div class="wrap cc-article-layout">
       <article class="cc-article-copy">
         {paragraphs.map((paragraph)=><p>{paragraph}</p>)}
+
+        <div class="cc-article-footer">
+          {item.source_url&&<div class="cc-article-source">
+            <div class="eyebrow gray">Original source</div>
+            <a href={item.source_url} target="_blank" rel="noreferrer">{sourceName} ↗</a>
+          </div>}
+
+          <div class="cc-share">
+            <div class="eyebrow gray">Share this signal</div>
+            <div class="cc-share-links">
+              <button type="button" data-share-native>Share</button>
+              <button type="button" data-copy-link>Copy link</button>
+              <a href={'mailto:?subject='+encodeURIComponent(shareTitle)+'&body='+encodeURIComponent(shareUrl)}>Email</a>
+              <a href={'https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl)} target="_blank" rel="noreferrer">LinkedIn</a>
+              <a href={'https://twitter.com/intent/tweet?text='+encodeURIComponent(shareTitle)+'&url='+encodeURIComponent(shareUrl)} target="_blank" rel="noreferrer">X</a>
+              <a href={'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareUrl)} target="_blank" rel="noreferrer">Facebook</a>
+            </div>
+            <div class="cc-share-status" data-share-status aria-live="polite"></div>
+          </div>
+        </div>
       </article>
 
       <aside class="cc-article-aside">
@@ -72,5 +99,22 @@ const paragraphs=String(item.public_body)
 
 <footer class="footer"><div class="wrap footer-grid"><div><img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"><div class="footer-tagline">Protect the Build. Grow the Legacy.</div><div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div></div><div><h4>Explore</h4><a href="/assessment">Growth Terrain Assessment</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a></div><div><h4>Company</h4><a href="/about">About XGL</a><a href="/faq">FAQ</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>
 <script src="/site.js" defer></script>
+<script>
+  const shareButton=document.querySelector('[data-share-native]');
+  const copyButton=document.querySelector('[data-copy-link]');
+  const status=document.querySelector('[data-share-status]');
+  shareButton?.addEventListener('click',async()=>{
+    if(navigator.share){
+      try{await navigator.share({title:document.title,url:window.location.href});}catch{}
+    }else{
+      await navigator.clipboard.writeText(window.location.href);
+      if(status) status.textContent='Link copied.';
+    }
+  });
+  copyButton?.addEventListener('click',async()=>{
+    await navigator.clipboard.writeText(window.location.href);
+    if(status) status.textContent='Link copied.';
+  });
+</script>
 </body>
 </html>
