@@ -52,6 +52,12 @@
       .routing-grid { display:grid; grid-template-columns:1fr 1fr auto; gap:.45rem; align-items:center; }
       .routing select { width:100%; background:#151d26; color:#eef2f6; border:1px solid #344155; border-radius:8px; padding:.55rem .6rem; font-size:.78rem; }
       .routing-help { margin-top:.45rem; color:#7f90a4; font-size:.72rem; line-height:1.4; }
+      .story-editor { margin-top:.8rem; padding:.8rem; border:1px solid #3a4b5f; border-radius:10px; background:#0d141b; }
+      .story-editor label { display:block; color:#dce5ee; font-size:.76rem; font-weight:800; margin:.65rem 0 .28rem; }
+      .story-editor input,.story-editor textarea { width:100%; background:#151d26; color:#eef2f6; border:1px solid #344155; border-radius:8px; padding:.6rem .65rem; font:inherit; font-size:.82rem; }
+      .story-editor textarea { min-height:90px; resize:vertical; line-height:1.5; }
+      .story-editor textarea[data-story-body] { min-height:220px; }
+      .story-editor-actions { display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap; }
       .hidden { display:none !important; }
       @media(max-width:900px){ .row { grid-template-columns:1fr; } .head { display:none; } .guide-grid { grid-template-columns:1fr 1fr; } }
       @media(max-width:600px){ .guide-grid { grid-template-columns:1fr; } }
@@ -154,7 +160,7 @@
         if (item.kind === 'intelligence') {
           if (item.status === 'needs_verification') return 'Recommended next step: open the source and confirm the specific claim. If true but not yet publication-ready, choose “Verified — keep private.” If the alert is noise or irrelevant, choose “Reject / archive.”';
           if (item.status === 'needs_commentary') return 'Recommended next step: the underlying fact is already worth keeping. Add or confirm XGL context, then choose “Publish now” when the wording is ready.';
-          if (item.status === 'verified') return 'Recommended next step: this has been fact-checked and is still private. Publish it when the wording and timing are right, or hold/archive it if it no longer matters.';
+          if (item.status === 'verified') return 'Recommended next step: this has been fact-checked and is still private. Use “Edit public story” to turn the evidence into a reader-ready headline, lede, and article. Then publish when the wording and timing are right.';
           if (item.status === 'published') return 'This is already public. Leave it alone unless it is outdated or wrong; then use “Remove from public.”';
           if (item.status === 'hold') return 'This is parked. Revisit it when timing or evidence improves.';
         }
@@ -188,6 +194,9 @@
         if (isHistory(item)) return '<div class="small">Archived. No action required.</div>';
 
         const buttons = [];
+        if (item.kind === 'intelligence') {
+          buttons.push('<button data-edit-story>Edit public story</button>');
+        }
         if (item.status !== 'published') {
           buttons.push('<button data-action="approve" class="primary">Publish now</button>');
         }
@@ -205,6 +214,25 @@
         }
         buttons.push('<button data-action="kill" class="danger">Reject / archive</button>');
         return buttons.join('');
+      }
+
+      function storyEditor(item) {
+        if (item.kind !== 'intelligence') return '';
+        return '<div class="story-editor hidden" data-story-editor>' +
+          '<div class="routing-title">Public story editor</div>' +
+          '<div class="routing-help">Rewrite the monitored signal for readers. Raw watcher evidence stays in the evidence box above.</div>' +
+          '<label>Headline</label>' +
+          '<input data-story-headline value="' + escapeHtml(item.headline || '') + '">' +
+          '<label>Brief description / lede</label>' +
+          '<textarea data-story-summary>' + escapeHtml(item.summary || '') + '</textarea>' +
+          '<label>Full public article</label>' +
+          '<textarea data-story-body>' + escapeHtml(item.public_body || '') + '</textarea>' +
+          '<label>Why XGL cares</label>' +
+          '<textarea data-story-why>' + escapeHtml(item.why_xgl_cares || '') + '</textarea>' +
+          '<label>Geography</label>' +
+          '<input data-story-geography value="' + escapeHtml(item.geography || '') + '">' +
+          '<div class="story-editor-actions"><button data-story-save class="primary">Save story draft</button><button data-story-cancel>Close</button></div>' +
+          '</div>';
       }
 
       function render() {
@@ -239,6 +267,7 @@
                   <div class="briefbody">${escapeHtml(item.public_body)}</div>
                 </details>` : ''}
               <div class="recommend"><strong>What should I do?</strong><br>${escapeHtml(recommendation(item))}</div>
+              ${storyEditor(item)}
               ${item.detected_at ? `<div class="meta">Detected ${new Date(item.detected_at).toLocaleString()}</div>` : ''}
             </div>
             <div class="small">
@@ -314,6 +343,47 @@
       }
 
       queue?.addEventListener('click', async (event) => {
+        const editButton = event.target.closest('button[data-edit-story]');
+        if (editButton) {
+          const row = editButton.closest('[data-id]');
+          row.querySelector('[data-story-editor]')?.classList.toggle('hidden');
+          return;
+        }
+
+        const cancelButton = event.target.closest('button[data-story-cancel]');
+        if (cancelButton) {
+          const row = cancelButton.closest('[data-id]');
+          row.querySelector('[data-story-editor]')?.classList.add('hidden');
+          return;
+        }
+
+        const saveStoryButton = event.target.closest('button[data-story-save]');
+        if (saveStoryButton) {
+          const row = saveStoryButton.closest('[data-id]');
+          saveStoryButton.disabled = true;
+          saveStoryButton.textContent = 'Saving…';
+
+          const { error } = await supabase.rpc('command_central_edit_story_staff', {
+            target_id: row.dataset.id,
+            story_headline: row.querySelector('[data-story-headline]')?.value || '',
+            story_summary: row.querySelector('[data-story-summary]')?.value || '',
+            story_body: row.querySelector('[data-story-body]')?.value || '',
+            story_why_xgl_cares: row.querySelector('[data-story-why]')?.value || null,
+            story_geography: row.querySelector('[data-story-geography]')?.value || null
+          });
+
+          saveStoryButton.disabled = false;
+          saveStoryButton.textContent = 'Save story draft';
+
+          if (error) {
+            alert(error.message || 'Story draft could not be saved.');
+            return;
+          }
+
+          await loadData();
+          return;
+        }
+
         const routeButton = event.target.closest('button[data-route-save]');
         if (routeButton) {
           const row = routeButton.closest('[data-id]');
