@@ -3,6 +3,18 @@
   const menu = document.querySelector('.mobile-menu');
   if (!header) return;
 
+  document.querySelectorAll('a[href="/the-lab"]').forEach((link) => {
+    if (link.textContent.trim() === 'The Lab') link.textContent = 'Services';
+  });
+
+  const footerGrid = document.querySelector('.footer-grid');
+  if (footerGrid && !footerGrid.querySelector('.visual-disclosure')) {
+    const disclosure = document.createElement('div');
+    disclosure.className = 'visual-disclosure';
+    disclosure.textContent = 'Selected site imagery is illustrative and may include digitally created or concept visuals. Such imagery represents XGL’s field, design, and institutional direction—not completed XGL-owned vehicles, facilities, client work, or partnerships unless identified otherwise.';
+    footerGrid.appendChild(disclosure);
+  }
+
   let previousY = window.scrollY;
   let scheduled = false;
 

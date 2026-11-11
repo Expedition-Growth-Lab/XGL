@@ -49,6 +49,67 @@
   mix-blend-mode:screen;
   background:transparent;
 }
+
+/* Clarity and positioning revision — November 2026 */
+.button-outline{background:transparent;color:#f5f0e8;border:1px solid #7b8082}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.centered-actions{justify-content:center}
+.signal-band{min-height:58px;background:#0c0e0f;border-bottom:1px solid #202325}
+.signal-band .wrap{min-height:58px;display:flex;justify-content:flex-end;align-items:center;color:#8b8d8f;text-transform:uppercase;letter-spacing:.13em;font-size:10px;text-align:right}
+.compact-grid{margin-bottom:55px}
+.purchase-grid .service-card{display:flex;flex-direction:column}
+.purchase-grid .text-link{margin-top:auto;padding-top:24px}
+.dark-link{color:#156b86}
+.promo-note{margin-top:18px;border-left:4px solid var(--orange);background:#dfd5c5;padding:20px 24px;color:#343638;font-size:16px;line-height:1.55}
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+.status-card{border:1px solid #414648;padding:30px;min-height:250px;background:#171b1d}
+.status-card h3{font-size:26px;line-height:1.1;text-transform:uppercase;margin:28px 0 12px;font-weight:500}
+.status-card p{font-size:17px;line-height:1.55;color:#aeb5b7;margin:0}
+.status-label{display:inline-block;padding:7px 9px;border:1px solid #647176;color:#bdc8cb;text-transform:uppercase;letter-spacing:.11em;font-size:10px;font-weight:700}
+.status-label.live{border-color:#4aa66b;color:#9ee4b2}
+.status-label.active{border-color:#d79733;color:#f2c878}
+.status-label.developing{border-color:#529fc0;color:#86ddff}
+.light-status .status-card{background:#f3eee6;border-color:#c9c0b3}
+.light-status .status-card h3{color:#202224}
+.light-status .status-card p{color:#55595a}
+.founder-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;margin-top:52px}
+.founder-card{border:1px solid #414648;background:#171b1d;padding:38px;min-height:360px}
+.founder-card.primary-founder{border-top:4px solid var(--orange)}
+.founder-role{color:var(--blue);text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:700}
+.founder-card h3{font-size:42px;font-weight:400;margin:28px 0 16px;text-transform:uppercase}
+.founder-card p{font-size:18px;line-height:1.6;color:#b5bcbe}
+.image-caption{margin:13px 0 0;color:#6f6c68;font-size:13px;line-height:1.5}
+.visual-disclosure{grid-column:1/-1;border-top:1px solid #242829;padding-top:18px;color:#676d6f;font-size:12px;line-height:1.5;max-width:900px}
+.center-statement .section-title{max-width:900px}
+.center-statement .copy{max-width:800px}
+
+@media(max-width:960px){
+  .wrap{width:min(100% - 40px,1240px)}
+  .site-header .wrap{grid-template-columns:1fr auto}
+  .nav,.assessment-cta{display:none}
+  .mobile-menu{display:block}
+  .section-grid,.cc-preview,.assessment-hero-grid,.direct-grid,.intensive{grid-template-columns:1fr;gap:45px}
+  .role-grid{grid-template-columns:1fr 1fr}
+  .role:nth-child(2){border-right:0}
+  .role:nth-child(-n+2){border-bottom:1px solid #45494b}
+  .service-grid,.contact-grid,.cap-grid,.desks{grid-template-columns:1fr 1fr}
+  .founder-grid,.status-grid{grid-template-columns:1fr}
+  .next-box{justify-self:start}
+  .display{font-size:78px}
+  .section-title{font-size:64px}
+}
+
+@media(max-width:620px){
+  .hero-actions{flex-direction:column;align-items:flex-start}
+  .hero-actions .button{width:100%;text-align:center}
+  .centered-actions{align-items:center}
+  .signal-band .wrap{justify-content:flex-start;text-align:left;padding:18px 0;line-height:1.7}
+  .promo-note{font-size:14px}
+  .founder-card{padding:28px}
+  .founder-card h3{font-size:34px}
+  .visual-disclosure{font-size:11px}
+  .status-grid{grid-template-columns:1fr}
+}
 /* Slightly quieter supporting copy, matching the reference site */
 .hero-copy{font-size:22px;font-weight:300;line-height:1.48}
 @media(max-width:620px){
