@@ -1,0 +1,55 @@
+---
+import { createPublicClient } from '../../lib/supabase';
+
+export const prerender = false;
+
+const supabase=createPublicClient();
+const {data}=await supabase
+  .from('intelligence_items')
+  .select('slug,headline,summary,public_desk,geography,editorial_priority,featured,source_published_at,published_at,source_url')
+  .eq('editorial_status','published')
+  .order('source_published_at',{ascending:false,nullsFirst:false})
+  .order('published_at',{ascending:false})
+  .limit(50);
+
+const esc=(value='')=>String(value)
+  .replaceAll('&','&amp;')
+  .replaceAll('<','&lt;')
+  .replaceAll('>','&gt;')
+  .replaceAll('"','&quot;')
+  .replaceAll("'","&apos;");
+
+const site='https://expeditiongrowthlab.com';
+const items=(data??[]).map((item)=>{
+  const link=`${site}/command-central/field-signal/${item.slug}`;
+  const pubDate=new Date(item.source_published_at||item.published_at||Date.now()).toUTCString();
+  const category=[item.public_desk,item.editorial_priority,item.geography].filter(Boolean);
+  return `<item>
+<title>${esc(item.headline)}</title>
+<link>${esc(link)}</link>
+<guid isPermaLink="true">${esc(link)}</guid>
+<pubDate>${esc(pubDate)}</pubDate>
+<description>${esc(item.summary||'')}</description>
+${category.map((x)=>`<category>${esc(x)}</category>`).join('\n')}
+${item.source_url?`<source url="${esc(item.source_url)}">${esc(item.source_url)}</source>`:''}
+</item>`;
+}).join('\n');
+
+const body=`<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+<title>Command Central — Expedition Growth Lab</title>
+<link>${site}/command-central</link>
+<description>Published intelligence from Expedition Growth Lab Command Central.</description>
+<language>en-us</language>
+<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+<atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="${site}/command-central/rss.xml" rel="self" type="application/rss+xml"/>
+${items}
+</channel>
+</rss>`;
+
+return new Response(body,{headers:{
+  'Content-Type':'application/rss+xml; charset=utf-8',
+  'Cache-Control':'public, max-age=300'
+}});
+---
