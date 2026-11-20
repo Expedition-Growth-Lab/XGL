@@ -1,0 +1,33 @@
+---
+import { createPublicClient } from '../../lib/supabase';
+
+export const prerender = false;
+
+const supabase=createPublicClient();
+const {data}=await supabase
+  .from('intelligence_items')
+  .select('slug,headline,summary,public_desk,watchtower_category,geography,editorial_priority,featured,topic_tags,geography_tags,source_published_at,published_at,source_url')
+  .eq('editorial_status','published')
+  .order('featured',{ascending:false})
+  .order('source_published_at',{ascending:false,nullsFirst:false})
+  .order('published_at',{ascending:false})
+  .limit(50);
+
+const site='https://expeditiongrowthlab.com';
+const items=(data??[]).map((item)=>({
+  ...item,
+  url:`${site}/command-central/field-signal/${item.slug}`
+}));
+
+return new Response(JSON.stringify({
+  version:1,
+  generated_at:new Date().toISOString(),
+  home_url:`${site}/command-central`,
+  rss_url:`${site}/command-central/rss.xml`,
+  items
+}),{headers:{
+  'Content-Type':'application/json; charset=utf-8',
+  'Access-Control-Allow-Origin':'*',
+  'Cache-Control':'public, max-age=300'
+}});
+---
