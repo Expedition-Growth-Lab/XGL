@@ -198,3 +198,96 @@
   .command-central-app .cc-news-item.green{padding-left:12px}
   .command-central-app .cc-news-copy h3{font-size:24px}
 }
+
+
+/* Compact Command Central landing hero: put the newsroom above the fold */
+.command-central-app .cc-command-hero{
+  background:#101314;
+  padding:112px 0 26px;
+}
+.command-central-app .cc-command-hero-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);
+  gap:34px;
+  align-items:end;
+}
+.command-central-app .cc-command-intro h1{
+  font-family:'Inter',Arial,sans-serif;
+  font-size:clamp(46px,5.6vw,72px);
+  font-weight:300;
+  line-height:.94;
+  letter-spacing:-.055em;
+  text-transform:uppercase;
+  margin:7px 0 14px;
+}
+.command-central-app .cc-command-intro p{
+  max-width:650px;
+  margin:0;
+  color:#aeb6b8;
+  font-size:17px;
+  line-height:1.5;
+}
+.command-central-app .cc-command-manifesto{
+  border:1px solid #3d4548;
+  background:#181d1f;
+  padding:20px 22px 19px;
+}
+.command-central-app .cc-command-manifesto h2{
+  font-family:'Inter',Arial,sans-serif;
+  font-size:27px;
+  font-weight:400;
+  line-height:1.05;
+  letter-spacing:-.035em;
+  text-transform:uppercase;
+  margin:5px 0 10px;
+}
+.command-central-app .cc-command-manifesto p{
+  margin:0;
+  color:#aeb6b8;
+  font-size:14px;
+  line-height:1.5;
+}
+.command-central-app .cc-foundation.cc-foundation-tight{
+  padding:24px 0 58px;
+}
+.command-central-app .cc-foundation-tight .cc-desks{
+  gap:12px;
+}
+.command-central-app .cc-foundation-tight .cc-desk{
+  min-height:126px;
+  padding:20px 21px;
+}
+.command-central-app .cc-foundation-tight .cc-desk h3{
+  font-size:23px;
+  margin-bottom:7px;
+}
+.command-central-app .cc-foundation-tight .cc-desk p{
+  font-size:14px;
+  line-height:1.42;
+}
+.command-central-app .cc-foundation-tight .cc-status{
+  margin-top:9px;
+  font-size:10px;
+}
+.command-central-app .cc-foundation-tight .cc-signal-strip{
+  margin-top:26px;
+}
+
+@media(min-width:1180px) and (min-height:760px){
+  .command-central-app .cc-command-hero{padding-top:104px}
+  .command-central-app .cc-foundation.cc-foundation-tight{padding-top:18px}
+}
+@media(max-width:900px){
+  .command-central-app .cc-command-hero{padding:104px 0 26px}
+  .command-central-app .cc-command-hero-grid{grid-template-columns:1fr;gap:18px}
+  .command-central-app .cc-command-manifesto{max-width:680px}
+}
+@media(max-width:620px){
+  .command-central-app .cc-command-hero{padding:96px 0 20px}
+  .command-central-app .cc-command-intro h1{font-size:44px}
+  .command-central-app .cc-command-intro p{font-size:16px}
+  .command-central-app .cc-command-manifesto{padding:17px 18px}
+  .command-central-app .cc-command-manifesto h2{font-size:23px}
+  .command-central-app .cc-foundation.cc-foundation-tight{padding:18px 0 48px}
+  .command-central-app .cc-foundation-tight .cc-desk{min-height:0;padding:18px}
+}
