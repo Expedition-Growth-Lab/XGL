@@ -235,6 +235,18 @@
           '<textarea data-story-why>' + escapeHtml(item.why_xgl_cares || '') + '</textarea>' +
           '<label>Geography</label>' +
           '<input data-story-geography value="' + escapeHtml(item.geography || '') + '">' +
+          '<label>Newsroom priority</label>' +
+          '<select data-story-priority style="width:100%;background:#151d26;color:#eef2f6;border:1px solid #344155;border-radius:8px;padding:.6rem .65rem">' +
+            '<option value="">None</option>' +
+            '<option value="red" ' + (item.editorial_priority === 'red' ? 'selected' : '') + '>RED — immediate / high consequence</option>' +
+            '<option value="amber" ' + (item.editorial_priority === 'amber' ? 'selected' : '') + '>AMBER — major development</option>' +
+            '<option value="green" ' + (item.editorial_priority === 'green' ? 'selected' : '') + '>GREEN — strategic intelligence</option>' +
+          '</select>' +
+          '<label><input data-story-featured type="checkbox" style="width:auto;margin-right:.45rem" ' + (item.featured ? 'checked' : '') + '>Featured lead story for this desk</label>' +
+          '<label>Topic tags (comma separated)</label>' +
+          '<input data-story-topics value="' + escapeHtml((item.topic_tags || []).join(', ')) + '">' +
+          '<label>Geography tags (comma separated)</label>' +
+          '<input data-story-geotags value="' + escapeHtml((item.geography_tags || []).join(', ')) + '">' +
           '<div class="story-editor-actions"><button data-story-save class="primary">Save story draft</button><button data-story-cancel>Close</button></div>' +
           '</div>';
       }
@@ -261,6 +273,8 @@
             <div>
               ${badge(friendlyStatus(item.status))}
               ${badge(item.urgency || item.priority)}
+              ${badge(item.editorial_priority ? item.editorial_priority.toUpperCase() : '')}
+              ${item.featured ? badge('Featured') : ''}
             </div>
             <div>
               <div class="headline">${escapeHtml(item.headline)}</div>
@@ -325,6 +339,8 @@
             status:x.editorial_status, source_url:x.source_url,
             why_xgl_cares:x.why_xgl_cares, public_body:x.public_body,
             editorial_evidence:x.editorial_evidence,
+            editorial_priority:x.editorial_priority, featured:x.featured,
+            topic_tags:x.topic_tags || [], geography_tags:x.geography_tags || [],
             detected_at:x.detected_at, change_flag:x.change_flag
           }))),
           ...((payload.events || []).map((x) => ({
@@ -388,6 +404,20 @@
 
           if (error) {
             alert(error.message || 'Story draft could not be saved.');
+            return;
+          }
+
+          const parseTags = (value) => String(value || '').split(',').map((x) => x.trim()).filter(Boolean);
+          const { error: metadataError } = await supabase.rpc('command_central_story_metadata_staff', {
+            target_id: row.dataset.id,
+            story_priority: row.querySelector('[data-story-priority]')?.value || null,
+            story_featured: Boolean(row.querySelector('[data-story-featured]')?.checked),
+            story_topic_tags: parseTags(row.querySelector('[data-story-topics]')?.value),
+            story_geography_tags: parseTags(row.querySelector('[data-story-geotags]')?.value)
+          });
+
+          if (metadataError) {
+            alert(metadataError.message || 'Newsroom metadata could not be saved.');
             return;
           }
 
