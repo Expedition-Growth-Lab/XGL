@@ -1,0 +1,73 @@
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <link rel="stylesheet" href="/portal.css" />
+    <title>Member Login | Expedition Growth Lab</title>
+  </head>
+  <body>
+    <main class="portal-shell">
+      <a href="/" aria-label="Expedition Growth Lab home">
+        <img class="portal-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" />
+      </a>
+
+      <section class="portal-form-shell">
+        <div class="portal-eyebrow">Invitation-only access</div>
+        <h1>Member login.</h1>
+        <p>One account may hold One Rising Sun membership, an XGL client relationship, both, or neither. Access is granted separately for each program.</p>
+
+        <form id="portal-login-form">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="username" required />
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+          <button id="submit-button" class="portal-button primary" type="submit">Sign in</button>
+        </form>
+
+        <div id="status" class="portal-status" aria-live="polite"></div>
+        <p class="portal-note">There is no public signup. Accounts are activated through the applicable membership or client onboarding process.</p>
+      </section>
+    </main>
+
+    <script>
+      import { createBrowserClient } from '../../lib/supabase';
+      import { safePortalNext } from '../../lib/portal';
+
+      const supabase = createBrowserClient();
+      const form = document.querySelector('#portal-login-form');
+      const status = document.querySelector('#status');
+      const button = document.querySelector('#submit-button');
+      const nextPath = safePortalNext(new URLSearchParams(window.location.search).get('next'));
+
+      const { data: existing } = await supabase.auth.getUser();
+      if (existing.user) window.location.replace(nextPath);
+
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.querySelector<HTMLInputElement>('#email')?.value.trim();
+        const password = document.querySelector<HTMLInputElement>('#password')?.value;
+        if (!email || !password) return;
+
+        status?.classList.remove('error');
+        if (status) status.textContent = 'Signing in…';
+        if (button instanceof HTMLButtonElement) button.disabled = true;
+
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          status?.classList.add('error');
+          if (status) status.textContent = 'Sign-in failed. Check your email address and password.';
+          if (button instanceof HTMLButtonElement) button.disabled = false;
+          return;
+        }
+
+        window.location.assign(nextPath);
+      });
+    </script>
+  </body>
+</html>

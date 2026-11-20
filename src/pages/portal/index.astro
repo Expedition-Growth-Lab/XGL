@@ -1,0 +1,114 @@
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <link rel="stylesheet" href="/portal.css" />
+    <title>Account Portal | Expedition Growth Lab</title>
+  </head>
+  <body>
+    <main class="portal-shell">
+      <header class="portal-topbar">
+        <a href="/" aria-label="Expedition Growth Lab home"><img class="portal-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a>
+        <div class="portal-top-actions">
+          <a class="portal-link" href="/">Public site</a>
+          <button id="sign-out" class="portal-button" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <section>
+        <div class="portal-eyebrow">Private account hub</div>
+        <h1 class="portal-title">Your relationships. Clearly separated.</h1>
+        <p class="portal-lede">This account shows only the programs your organization has actually been granted. XGL client work does not create One Rising Sun membership, and One Rising Sun membership does not create an XGL client relationship.</p>
+      </section>
+
+      <div id="loading" class="portal-state">Checking your authorized access…</div>
+      <div id="error" class="portal-state error portal-hidden"></div>
+      <section id="programs" class="portal-grid portal-hidden" aria-label="Authorized programs"></section>
+      <div id="empty" class="portal-state portal-hidden">Your account is valid, but no active program access is assigned yet. If you believe that is incorrect, contact Expedition Growth Lab.</div>
+    </main>
+
+    <script>
+      import { createBrowserClient } from '../../lib/supabase';
+      import { activeProgramEnrollments, loadPortalContext } from '../../lib/portal';
+
+      const supabase = createBrowserClient();
+      const loading = document.querySelector('#loading');
+      const errorBox = document.querySelector('#error');
+      const programs = document.querySelector('#programs');
+      const empty = document.querySelector('#empty');
+      const signOut = document.querySelector('#sign-out');
+
+      function showError(message: string) {
+        loading?.classList.add('portal-hidden');
+        errorBox?.classList.remove('portal-hidden');
+        if (errorBox) errorBox.textContent = message;
+      }
+
+      try {
+        const context = await loadPortalContext(supabase);
+        if (!context) {
+          window.location.replace('/portal/login?next=/portal');
+        } else {
+          const activeEnrollments = activeProgramEnrollments(context);
+          loading?.classList.add('portal-hidden');
+
+          if (!activeEnrollments.length) {
+            empty?.classList.remove('portal-hidden');
+          } else if (programs) {
+            programs.classList.remove('portal-hidden');
+            for (const enrollment of activeEnrollments) {
+              const program = context.programs.find((item) => item.code === enrollment.program_code);
+              const organization = context.organizations.find((item) => item.id === enrollment.organization_id);
+              if (!program || !organization) continue;
+
+              const card = document.createElement('article');
+              card.className = 'portal-card';
+
+              const kicker = document.createElement('div');
+              kicker.className = 'portal-card-kicker';
+              kicker.textContent = 'Authorized program';
+              card.append(kicker);
+
+              const title = document.createElement('h2');
+              title.textContent = program.name;
+              card.append(title);
+
+              const description = document.createElement('p');
+              description.textContent = program.description;
+              card.append(description);
+
+              const meta = document.createElement('div');
+              meta.className = 'portal-meta';
+              for (const value of [organization.display_name, enrollment.member_lane].filter(Boolean)) {
+                const chip = document.createElement('span');
+                chip.className = 'portal-chip';
+                chip.textContent = String(value);
+                meta.append(chip);
+              }
+              card.append(meta);
+
+              const link = document.createElement('a');
+              link.className = 'portal-link';
+              link.href = program.portal_path;
+              link.textContent = 'Enter portal →';
+              card.append(link);
+              programs.append(card);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        showError('The portal could not load your access record. Please try again.');
+      }
+
+      signOut?.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.replace('/portal/login');
+      });
+    </script>
+  </body>
+</html>

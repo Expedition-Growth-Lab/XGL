@@ -1,0 +1,165 @@
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <link rel="stylesheet" href="/portal.css" />
+    <title>One Rising Sun Member Portal</title>
+  </head>
+  <body>
+    <main class="portal-shell">
+      <header class="portal-topbar">
+        <a href="/one-rising-sun" aria-label="One Rising Sun public page"><img class="portal-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a>
+        <div class="portal-top-actions">
+          <a class="portal-link" href="/portal">Account hub</a>
+          <button id="sign-out" class="portal-button" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <section>
+        <div class="portal-eyebrow">One Rising Sun · Member Portal</div>
+        <h1 class="portal-title">Independent does not have to mean alone.</h1>
+        <p class="portal-lede">The private operating space for vetted One Rising Sun members: shared capability, trusted introductions, member resources, cooperative opportunities, and work that makes independent companies stronger without making them less independent.</p>
+      </section>
+
+      <div id="loading" class="portal-state">Verifying One Rising Sun membership…</div>
+      <div id="denied" class="portal-state error portal-hidden">This account does not currently hold an active One Rising Sun membership. XGL client access does not grant admission. <a href="/portal">Return to your account hub.</a></div>
+      <div id="error" class="portal-state error portal-hidden"></div>
+
+      <section id="member-area" class="portal-hidden">
+        <div id="membership-grid" class="portal-grid"></div>
+
+        <div class="portal-section">
+          <div class="portal-eyebrow">Member resources</div>
+          <h2>Built for useful work.</h2>
+          <p class="portal-lede">Private instruments, education, opportunities, and cooperative materials will appear here as they are published for the network.</p>
+          <div id="resource-list" class="portal-list"></div>
+          <div id="resource-empty" class="portal-state portal-hidden">No private ORS resources have been published yet. The membership foundation is active; the resource library comes next.</div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      import { createBrowserClient } from '../../lib/supabase';
+      import { activeProgramEnrollments, loadPortalContext } from '../../lib/portal';
+
+      const supabase = createBrowserClient();
+      const loading = document.querySelector('#loading');
+      const denied = document.querySelector('#denied');
+      const errorBox = document.querySelector('#error');
+      const memberArea = document.querySelector('#member-area');
+      const membershipGrid = document.querySelector('#membership-grid');
+      const resourceList = document.querySelector('#resource-list');
+      const resourceEmpty = document.querySelector('#resource-empty');
+      const signOut = document.querySelector('#sign-out');
+
+      function showError(message: string) {
+        loading?.classList.add('portal-hidden');
+        errorBox?.classList.remove('portal-hidden');
+        if (errorBox) errorBox.textContent = message;
+      }
+
+      try {
+        const context = await loadPortalContext(supabase);
+        if (!context) {
+          window.location.replace('/portal/login?next=/one-rising-sun/portal');
+        } else {
+          const memberships = activeProgramEnrollments(context, 'one_rising_sun');
+          loading?.classList.add('portal-hidden');
+
+          if (!memberships.length) {
+            denied?.classList.remove('portal-hidden');
+          } else {
+            memberArea?.classList.remove('portal-hidden');
+
+            for (const membership of memberships) {
+              const organization = context.organizations.find((item) => item.id === membership.organization_id);
+              const organizationUser = context.organizationUsers.find((item) => item.organization_id === membership.organization_id);
+              if (!organization || !membershipGrid) continue;
+
+              const card = document.createElement('article');
+              card.className = 'portal-card';
+              const kicker = document.createElement('div');
+              kicker.className = 'portal-card-kicker';
+              kicker.textContent = 'Active member';
+              const title = document.createElement('h2');
+              title.textContent = organization.display_name;
+              const description = document.createElement('p');
+              description.textContent = 'Your organization has active access to the One Rising Sun member network.';
+              const meta = document.createElement('div');
+              meta.className = 'portal-meta';
+              for (const value of [membership.member_lane, organizationUser?.role].filter(Boolean)) {
+                const chip = document.createElement('span');
+                chip.className = 'portal-chip';
+                chip.textContent = String(value);
+                meta.append(chip);
+              }
+              card.append(kicker, title, description, meta);
+              membershipGrid.append(card);
+            }
+
+            const { data: resources, error } = await supabase
+              .from('portal_resources')
+              .select('id,title,description,resource_type,storage_bucket,storage_path,external_url,published_at')
+              .eq('program_code', 'one_rising_sun')
+              .eq('status', 'published')
+              .order('published_at', { ascending: false });
+
+            if (error) throw error;
+            if (!resources?.length) {
+              resourceEmpty?.classList.remove('portal-hidden');
+            } else if (resourceList) {
+              for (const resource of resources) {
+                const row = document.createElement('article');
+                row.className = 'portal-resource';
+                const type = document.createElement('div');
+                type.className = 'portal-resource-type';
+                type.textContent = resource.resource_type;
+                const copy = document.createElement('div');
+                const title = document.createElement('h3');
+                title.textContent = resource.title;
+                const description = document.createElement('p');
+                description.textContent = resource.description || '';
+                copy.append(title, description);
+                const action = document.createElement('button');
+                action.className = 'portal-button';
+                action.type = 'button';
+                action.textContent = 'Open →';
+                action.addEventListener('click', async () => {
+                  if (resource.external_url) {
+                    window.open(resource.external_url, '_blank', 'noopener,noreferrer');
+                    return;
+                  }
+                  if (!resource.storage_bucket || !resource.storage_path) return;
+                  action.disabled = true;
+                  const { data, error: signError } = await supabase.storage
+                    .from(resource.storage_bucket)
+                    .createSignedUrl(resource.storage_path, 300);
+                  action.disabled = false;
+                  if (signError || !data?.signedUrl) {
+                    showError('That resource could not be opened. Please try again.');
+                    return;
+                  }
+                  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+                });
+                row.append(type, copy, action);
+                resourceList.append(row);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        showError('The One Rising Sun portal could not load. Please try again.');
+      }
+
+      signOut?.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.replace('/portal/login');
+      });
+    </script>
+  </body>
+</html>
