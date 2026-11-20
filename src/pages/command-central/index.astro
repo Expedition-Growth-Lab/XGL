@@ -35,10 +35,22 @@ const hasIndustry=items.some((x)=>String(x.public_desk||x.stream||'').toLowerCas
 <body class="command-central-app">
 <header class="site-header"><div class="wrap"><a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"></a><nav class="nav"><a href="/the-lab">The Lab</a><a class="active" href="/command-central">Command Central</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></nav><a class="assessment-cta" href="/assessment">Start Assessment</a><details class="mobile-menu"><summary>Menu</summary><div class="mobile-menu-panel"><a href="/">Home</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/assessment">Start Assessment</a><a href="/command-central/login">Editorial Room</a></div></details></div></header>
 <main>
-<section class="hero"><div class="wrap"><div class="eyebrow">XGL Watchtower</div><h1 class="display">Command<br>Central.</h1><p class="hero-copy">A public intelligence center being built to help the overland world notice sooner, understand better, and act with more confidence.</p></div></section>
+<section class="cc-command-hero">
+  <div class="wrap cc-command-hero-grid">
+    <div class="cc-command-intro">
+      <div class="eyebrow">XGL Watchtower</div>
+      <h1>Command Central.</h1>
+      <p>A public intelligence center built to help the overland world notice sooner, understand better, and act with more confidence.</p>
+    </div>
+    <aside class="cc-command-manifesto">
+      <div class="eyebrow gray">Foundation Release</div>
+      <h2>News is cheap.<br>Meaning is useful.</h2>
+      <p>Every desk is governed by one practical question: what does this mean for builders, employees, customers, clubs, and communities?</p>
+    </aside>
+  </div>
+</section>
 
-<section class="cc-foundation"><div class="wrap"><div class="cc-intro-grid"><div><div class="eyebrow">Foundation Release</div><h2 class="section-title">News is cheap.<br>Meaning is useful.</h2></div><div class="cc-intro-copy">Every desk is governed by one practical question: what does this mean for builders, employees, customers, clubs, and communities?</div></div>
-
+<section class="cc-foundation cc-foundation-tight"><div class="wrap">
 <div class="cc-desks">
 <a class="cc-desk" href="/command-central/field-signal"><h3>Field Signal</h3><p>Important developments distilled into a short, useful operating brief.</p><span class:list={["cc-status",(hasFieldSignal||pipelineItems)&&"live"]}>{hasFieldSignal?"Published Live":pipelineItems?"Editorial Pipeline Live":"Desk Forming"}</span></a>
 <a class="cc-desk" href="/command-central/field-signal#regulatory-watch"><h3>Regulatory Watch</h3><p>Rules, agencies, proposals, and compliance terrain translated for builders.</p><span class:list={["cc-status",(hasRegulatory||regulatorySources)&&"live"]}>{hasRegulatory?"Published Live":regulatorySources?`Monitoring Live · ${regulatorySources} sources`:"Desk Forming"}</span></a>
