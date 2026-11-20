@@ -85,7 +85,8 @@ const storyHref=(item)=>`/command-central/field-signal/${item.slug}`;
       <div class="cc-desk-index-grid">
         {groups.map(([id,label,test])=>{
           const matches=items.filter(test);
-          return <a class="cc-desk-index-card" href={matches.length?`#${id}`:'/command-central'}>
+          const href=id==='public-lands-watch'?'/command-central/public-lands-watch':(matches.length?`#${id}`:'/command-central');
+          return <a class="cc-desk-index-card" href={href}>
             <span>{label}</span>
             <strong>{matches.length}</strong>
           </a>
