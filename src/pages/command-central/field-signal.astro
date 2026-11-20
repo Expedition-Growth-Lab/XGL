@@ -4,7 +4,7 @@ import { createPublicClient } from '../../lib/supabase';
 const supabase = createPublicClient();
 const { data, error } = await supabase
   .from('intelligence_items')
-  .select('id,slug,headline,stream,public_desk,watchtower_category,summary,urgency,published_at,source_url,why_xgl_cares,public_body,geography')
+  .select('id,slug,headline,stream,public_desk,watchtower_category,summary,urgency,published_at,source_published_at,source_url,why_xgl_cares,public_body,geography,editorial_priority,featured')
   .eq('editorial_status','published')
   .not('headline','ilike','Review source change:%')
   .order('published_at',{ascending:false})
@@ -60,11 +60,12 @@ const storyHref=(item)=>`/command-central/field-signal/${item.slug}`;
         ? <div class="cc-empty">No public Field Signals have been released yet. The Watchtower is active, but raw monitoring notes stay private until they are verified and rewritten into a public story.</div>
         : <div class="cc-story-list">
             {items.map((item)=>
-              <article class="cc-story-result">
+              <article class:list={["cc-story-result",item.editorial_priority&&`priority-${item.editorial_priority}`,item.featured&&"featured"]}>
+                {item.editorial_priority&&<div class="cc-priority-line"><span class:list={["cc-priority",item.editorial_priority]}>{String(item.editorial_priority).toUpperCase()}</span>{item.featured&&<span class="cc-priority red">Featured</span>}</div>}
                 <div class="cc-story-meta">
                   <span>{item.public_desk||item.stream||'Field Signal'}</span>
                   {item.geography&&<span>{item.geography}</span>}
-                  {item.published_at&&<span>{formatPublished(item.published_at)}</span>}
+                  {(item.source_published_at||item.published_at)&&<span>{formatPublished(item.source_published_at||item.published_at)}</span>}
                 </div>
                 <h3><a href={storyHref(item)}>{item.headline}</a></h3>
                 {item.summary&&<p>{item.summary}</p>}
@@ -109,10 +110,11 @@ const storyHref=(item)=>`/command-central/field-signal/${item.slug}`;
         </div>
         <div class="cc-story-list">
           {matches.map((item)=>
-            <article class="cc-story-result">
+            <article class:list={["cc-story-result",item.editorial_priority&&`priority-${item.editorial_priority}`,item.featured&&"featured"]}>
+              {item.editorial_priority&&<div class="cc-priority-line"><span class:list={["cc-priority",item.editorial_priority]}>{String(item.editorial_priority).toUpperCase()}</span>{item.featured&&<span class="cc-priority red">Featured</span>}</div>}
               <div class="cc-story-meta">
                 {item.geography&&<span>{item.geography}</span>}
-                {item.published_at&&<span>{formatPublished(item.published_at)}</span>}
+                {(item.source_published_at||item.published_at)&&<span>{formatPublished(item.source_published_at||item.published_at)}</span>}
               </div>
               <h3><a href={storyHref(item)}>{item.headline}</a></h3>
               {item.summary&&<p>{item.summary}</p>}
