@@ -1,0 +1,119 @@
+---
+import { createPublicClient } from '../../lib/supabase';
+const supabase=createPublicClient();
+
+const {data,error}=await supabase
+  .from('intelligence_items')
+  .select('slug,headline,summary,public_body,geography,source_url,published_at,source_published_at,editorial_priority,featured,topic_tags,geography_tags,parent_story_id')
+  .eq('editorial_status','published')
+  .eq('public_desk','Public Lands Watch')
+  .order('source_published_at',{ascending:false,nullsFirst:false})
+  .order('published_at',{ascending:false});
+
+const items=data??[];
+const featured=items.find((x)=>x.featured)||items[0]||null;
+const rest=featured?items.filter((x)=>x.slug!==featured.slug):items;
+const storyHref=(item)=>`/command-central/field-signal/${item.slug}`;
+const fmt=(v)=>v?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(v)):'';
+const redCount=items.filter((x)=>x.editorial_priority==='red').length;
+const amberCount=items.filter((x)=>x.editorial_priority==='amber').length;
+const greenCount=items.filter((x)=>x.editorial_priority==='green').length;
+const priorityLabel=(p)=>p==='red'?'RED · Immediate / high consequence':p==='amber'?'AMBER · Major development':'GREEN · Strategic intelligence';
+---
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Public Lands Watch | Command Central | Expedition Growth Lab</title>
+<meta name="description" content="Public Lands Watch tracks consequential changes affecting public lands, access, recreation, regulation, and public participation.">
+<link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp">
+<link rel="stylesheet" href="/institutional.css">
+<link rel="stylesheet" href="/command-central.css">
+</head>
+<body class="command-central-app">
+<header class="site-header"><div class="wrap"><a class="logo" href="/"><img src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"></a><nav class="nav"><a href="/the-lab">The Lab</a><a class="active" href="/command-central">Command Central</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></nav><a class="assessment-cta" href="/assessment">Start Assessment</a><details class="mobile-menu"><summary>Menu</summary><div class="mobile-menu-panel"><a href="/">Home</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/public-lands-watch">Public Lands Watch</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a></div></details></div></header>
+
+<main>
+<section class="cc-newsroom-hero">
+  <div class="wrap">
+    <a class="cc-back" href="/command-central">← Back to Command Central</a>
+    <div class="eyebrow">Command Central · Public Lands Watch</div>
+    <h1>Public Lands<br>Watch.</h1>
+    <p>Consequential changes to access, public participation, monuments, parks, land-use policy, recreation, development, and the institutions responsible for managing public land.</p>
+    <div class="cc-newsroom-priority-strip">
+      <span class="cc-priority red">{redCount} RED</span>
+      <span class="cc-priority amber">{amberCount} AMBER</span>
+      <span class="cc-priority green">{greenCount} GREEN</span>
+      <span>{items.length} published stories</span>
+    </div>
+  </div>
+</section>
+
+{featured&&<section class="cc-newsroom-feature">
+  <div class="wrap">
+    <div class="cc-feature-kicker"><span class:list={["cc-priority",featured.editorial_priority||"red"]}>FEATURED · {priorityLabel(featured.editorial_priority)}</span></div>
+    <article class="cc-feature-card">
+      <div class="cc-story-meta">
+        {featured.source_published_at&&<span>{fmt(featured.source_published_at)}</span>}
+        {featured.geography&&<span>{featured.geography}</span>}
+      </div>
+      <h2><a href={storyHref(featured)}>{featured.headline}</a></h2>
+      <p>{featured.summary}</p>
+      <div class="cc-tag-row">
+        {(featured.topic_tags||[]).slice(0,6).map((tag)=><span>{String(tag).replaceAll('-',' ')}</span>)}
+      </div>
+      <div class="cc-story-actions">
+        <a class="cc-read-story" href={storyHref(featured)}>Read the full story →</a>
+        {featured.source_url&&<a class="cc-source-link" href={featured.source_url} target="_blank" rel="noreferrer">Primary source ↗</a>}
+      </div>
+    </article>
+  </div>
+</section>}
+
+<section class="cc-newsroom-list">
+  <div class="wrap">
+    <div class="cc-newsroom-heading">
+      <div>
+        <div class="eyebrow gray">Latest first</div>
+        <h2>Public Lands Desk</h2>
+      </div>
+      <p>Chronological reporting. High-consequence and time-sensitive stories are marked RED. Major developments are AMBER. Strategic intelligence is GREEN.</p>
+    </div>
+
+    {error?<div class="cc-empty">Public Lands Watch could not load the newsroom feed.</div>:
+    <div class="cc-news-list">
+      {rest.map((item)=><article class:list={["cc-news-item",item.editorial_priority||"green"]}>
+        <div class="cc-news-priority"><span class:list={["cc-priority",item.editorial_priority||"green"]}>{String(item.editorial_priority||'green').toUpperCase()}</span></div>
+        <div class="cc-news-date">{fmt(item.source_published_at||item.published_at)}</div>
+        <div class="cc-news-copy">
+          <div class="cc-story-meta">
+            {item.geography&&<span>{item.geography}</span>}
+          </div>
+          <h3><a href={storyHref(item)}>{item.headline}</a></h3>
+          <p>{item.summary}</p>
+          <div class="cc-tag-row">
+            {(item.topic_tags||[]).slice(0,5).map((tag)=><span>{String(tag).replaceAll('-',' ')}</span>)}
+          </div>
+          <div class="cc-story-actions">
+            <a class="cc-read-story" href={storyHref(item)}>Read story →</a>
+            {item.source_url&&<a class="cc-source-link" href={item.source_url} target="_blank" rel="noreferrer">Source ↗</a>}
+          </div>
+        </div>
+      </article>)}
+    </div>}
+  </div>
+</section>
+
+<section class="cc-feed-future">
+  <div class="wrap">
+    <div class="eyebrow gray">Where Command Central is headed</div>
+    <h2>Your terrain. Your signal.</h2>
+    <p>Public Lands Watch is being structured around geography, topic, urgency, and desk so future members can build a personal intelligence feed—choosing the places and categories they care about instead of drinking from the entire internet fire hose.</p>
+  </div>
+</section>
+</main>
+
+<footer class="footer"><div class="wrap footer-grid"><div><img class="footer-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab"><div class="footer-tagline">Protect the Build. Grow the Legacy.</div><div class="copyright">© 2026 Expedition Growth Lab LLC. Oregon, USA.</div></div><div><h4>Explore</h4><a href="/assessment">Growth Terrain Assessment</a><a href="/the-lab">The Lab</a><a href="/command-central">Command Central</a><a href="/command-central/public-lands-watch">Public Lands Watch</a><a href="/command-central/field-signal">Field Signal</a><a href="/one-rising-sun">One Rising Sun</a></div><div><h4>Company</h4><a href="/about">About XGL</a><a href="/faq">FAQ</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>
+<script src="/site.js" defer></script>
+</body>
+</html>
