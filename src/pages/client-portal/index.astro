@@ -7,81 +7,64 @@
     <meta name="robots" content="noindex,nofollow,noarchive" />
     <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
     <link rel="stylesheet" href="/portal.css" />
-    <title>XGL Client Portal | Expedition Growth Lab</title>
+    <title>Client Back Office | Expedition Growth Lab</title>
   </head>
   <body>
-    <main class="portal-shell">
-      <header class="portal-topbar">
+    <main class="portal-app-shell">
+      <header class="portal-app-topbar">
         <a href="/" aria-label="Expedition Growth Lab home"><img class="portal-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a>
-        <div class="portal-top-actions"><a class="portal-link" href="/portal">Account hub</a><button id="sign-out" class="portal-button" type="button">Sign out</button></div>
+        <div class="portal-top-actions">
+          <a class="portal-link" href="/portal">Account hub</a>
+          <a id="staff-admin-link" class="portal-link portal-hidden" href="/client-portal/admin">Staff queue</a>
+          <button id="sign-out" class="portal-button" type="button">Sign out</button>
+        </div>
       </header>
 
-      <section>
-        <div class="portal-eyebrow">Expedition Growth Lab · Client Portal</div>
-        <h1 class="portal-title">Your XGL work. Its own room.</h1>
-        <p class="portal-lede">Private client deliverables, decisions, working materials, and account resources belong here. This relationship is independent of One Rising Sun membership.</p>
-      </section>
-
-      <div id="loading" class="portal-state">Verifying active XGL client access…</div>
-      <div id="denied" class="portal-state error portal-hidden">This account does not currently hold active XGL client-portal access. One Rising Sun membership does not create a client relationship. <a href="/portal">Return to your account hub.</a></div>
-      <section id="client-area" class="portal-hidden">
-        <div id="client-grid" class="portal-grid"></div>
-        <div class="portal-section"><div class="portal-eyebrow">Client workspace</div><h2>The room is established.</h2><p class="portal-lede">Deliverables, approvals, project records, and account resources will be added here as the client system is built out.</p></div>
-      </section>
+      <div id="loading" class="portal-state">Opening your authorized workspace…</div>
+      <div id="denied" class="portal-state error portal-hidden">This account does not currently hold active XGL client access. One Rising Sun membership does not create a client relationship. <a href="/portal">Return to your account hub.</a></div>
       <div id="error" class="portal-state error portal-hidden"></div>
+
+      <section id="workspace" class="portal-hidden">
+        <div class="portal-app-heading">
+          <div>
+            <div class="portal-eyebrow">Expedition Growth Lab · Secure client back office</div>
+            <h1 id="organization-name">Client workspace</h1>
+            <p>Projects, decisions, files, approvals, and next actions—kept in one accountable room.</p>
+          </div>
+          <div class="portal-heading-actions">
+            <select id="organization-select" class="portal-select" aria-label="Organization"></select>
+            <button class="portal-button primary" data-new="action" type="button">New action</button>
+          </div>
+        </div>
+
+        <nav class="portal-app-nav" aria-label="Client workspace">
+          <button class="active" data-view="overview">Action center</button>
+          <button data-view="projects">Projects</button>
+          <button data-view="actions">Actions</button>
+          <button data-view="decisions">Decisions</button>
+          <button data-view="documents">Documents</button>
+          <button data-view="deliverables">Deliverables</button>
+          <button data-view="approvals">Approvals</button>
+          <button data-view="team">Team</button>
+          <button data-view="activity">Activity</button>
+        </nav>
+
+        <div id="notice" class="portal-inline-notice portal-hidden" role="status"></div>
+        <section id="view" class="portal-app-view" aria-live="polite"></section>
+      </section>
     </main>
 
-    <script>
-      import { createBrowserClient } from '../../lib/supabase';
-      import { activeProgramEnrollments, loadPortalContext } from '../../lib/portal';
+    <dialog id="portal-dialog" class="portal-dialog">
+      <form id="entity-form" method="dialog">
+        <div class="portal-dialog-head">
+          <div><div class="portal-eyebrow">Add to workspace</div><h2 id="dialog-title">New item</h2></div>
+          <button class="portal-dialog-close" value="cancel" aria-label="Close">×</button>
+        </div>
+        <div id="form-fields" class="portal-form-grid"></div>
+        <div class="portal-dialog-actions"><button class="portal-button" value="cancel">Cancel</button><button id="save-entity" class="portal-button primary" value="default">Save</button></div>
+      </form>
+    </dialog>
 
-      const supabase = createBrowserClient();
-      const loading = document.querySelector('#loading');
-      const denied = document.querySelector('#denied');
-      const clientArea = document.querySelector('#client-area');
-      const clientGrid = document.querySelector('#client-grid');
-      const errorBox = document.querySelector('#error');
-      const signOut = document.querySelector('#sign-out');
-
-      try {
-        const context = await loadPortalContext(supabase);
-        if (!context) {
-          window.location.replace('/portal/login?next=/client-portal');
-        } else {
-          const enrollments = activeProgramEnrollments(context, 'xgl_client');
-          loading?.classList.add('portal-hidden');
-          if (!enrollments.length) {
-            denied?.classList.remove('portal-hidden');
-          } else {
-            clientArea?.classList.remove('portal-hidden');
-            for (const enrollment of enrollments) {
-              const organization = context.organizations.find((item) => item.id === enrollment.organization_id);
-              if (!organization || !clientGrid) continue;
-              const card = document.createElement('article');
-              card.className = 'portal-card';
-              const kicker = document.createElement('div');
-              kicker.className = 'portal-card-kicker';
-              kicker.textContent = 'Active XGL client';
-              const title = document.createElement('h2');
-              title.textContent = organization.display_name;
-              const description = document.createElement('p');
-              description.textContent = 'This organization has been separately granted XGL client-portal access.';
-              card.append(kicker, title, description);
-              clientGrid.append(card);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(error);
-        loading?.classList.add('portal-hidden');
-        errorBox?.classList.remove('portal-hidden');
-        if (errorBox) errorBox.textContent = 'The XGL client portal could not load. Please try again.';
-      }
-
-      signOut?.addEventListener('click', async () => {
-        await supabase.auth.signOut();
-        window.location.replace('/portal/login');
-      });
-    </script>
+    <script src="../../lib/client-portal.ts"></script>
   </body>
 </html>

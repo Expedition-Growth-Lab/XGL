@@ -1,0 +1,53 @@
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
+    <link rel="stylesheet" href="/portal.css" />
+    <title>Client Operations Queue | Expedition Growth Lab</title>
+  </head>
+  <body>
+    <main class="portal-app-shell">
+      <header class="portal-app-topbar">
+        <a href="/" aria-label="Expedition Growth Lab home"><img class="portal-logo" src="/assets/xgl-txt-logo-clean.webp" alt="Expedition Growth Lab" /></a>
+        <div class="portal-top-actions"><a class="portal-link" href="/client-portal">Client workspace</a><a class="portal-link" href="/portal">Account hub</a><button id="sign-out" class="portal-button" type="button">Sign out</button></div>
+      </header>
+      <section class="portal-app-heading"><div><div class="portal-eyebrow">XGL staff · Cross-client operations</div><h1>One queue. No dropped threads.</h1><p>Assigned organizations, open work, pending approvals, and decisions requiring attention.</p></div></section>
+      <div id="admin-loading" class="portal-state">Verifying staff access and assembling the queue…</div>
+      <div id="admin-error" class="portal-state error portal-hidden"></div>
+      <section id="admin-view" class="portal-app-view portal-hidden"></section>
+    </main>
+    <script>
+      import { createBrowserClient } from '../../lib/supabase';
+      const supabase=createBrowserClient();
+      const view=document.querySelector('#admin-view');
+      const loading=document.querySelector('#admin-loading');
+      const errorBox=document.querySelector('#admin-error');
+      const escapeHtml=(value='')=>String(value).replace(/[&<>']/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;'}[character]));
+      const titleCase=(value='')=>String(value).replaceAll('_',' ').replace(/\b\w/g,(character)=>character.toUpperCase());
+      const dateLabel=(value)=>value?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(value)):'No date';
+      try {
+        const {data:userData}=await supabase.auth.getUser();
+        if(!userData.user){window.location.replace('/portal/login?next=/client-portal');}
+        const {data:role,error:roleError}=await supabase.rpc('current_xgl_role');
+        if(roleError||!['owner','admin','editor'].includes(role))throw new Error('This page is reserved for assigned XGL staff.');
+        const [orgsResult,projectsResult,actionsResult,decisionsResult,approvalsResult]=await Promise.all([
+          supabase.from('portal_organizations').select('id,display_name,status').order('display_name'),
+          supabase.from('portal_projects').select('*').neq('status','archived').order('updated_at',{ascending:false}),
+          supabase.from('portal_work_items').select('*').not('status','in','(complete,cancelled)').order('due_at',{ascending:true,nullsFirst:false}),
+          supabase.from('portal_decisions').select('*').eq('status','open').order('needed_by',{ascending:true,nullsFirst:false}),
+          supabase.from('portal_approval_requests').select('*').eq('status','pending').order('due_at',{ascending:true,nullsFirst:false})
+        ]);
+        const failure=[orgsResult,projectsResult,actionsResult,decisionsResult,approvalsResult].find((result)=>result.error);if(failure?.error)throw failure.error;
+        const orgs=orgsResult.data??[];const orgName=(id)=>orgs.find((org)=>org.id===id)?.display_name??'Organization';
+        const records=[...(actionsResult.data??[]).map((item)=>({...item,kind:'Action',due:item.due_at})),...(decisionsResult.data??[]).map((item)=>({...item,kind:'Decision',due:item.needed_by})),...(approvalsResult.data??[]).map((item)=>({...item,kind:'Approval',due:item.due_at}))].sort((a,b)=>new Date(a.due??'2999-01-01').getTime()-new Date(b.due??'2999-01-01').getTime());
+        loading?.classList.add('portal-hidden');view?.classList.remove('portal-hidden');
+        if(view)view.innerHTML=`<div class="portal-metric-grid"><article><span>Organizations</span><strong>${orgs.length}</strong></article><article><span>Active projects</span><strong>${(projectsResult.data??[]).filter((item)=>item.status==='active').length}</strong></article><article><span>Open actions</span><strong>${(actionsResult.data??[]).length}</strong></article><article><span>Pending approvals</span><strong>${(approvalsResult.data??[]).length}</strong></article></div><section class="portal-panel"><div class="portal-panel-head"><div><div class="portal-eyebrow">Priority queue</div><h2>Across assigned clients</h2></div></div>${records.length?`<div class="portal-table"><div class="portal-table-row head"><span>Record</span><span>Organization</span><span>Type</span><span>Due</span><span>Status</span></div>${records.map((item)=>`<article class="portal-table-row"><div><small>${item.kind}</small><strong>${escapeHtml(item.title)}</strong></div><span>${escapeHtml(orgName(item.organization_id))}</span><span>${item.kind}</span><span>${dateLabel(item.due)}</span><span>${titleCase(item.status)}</span></article>`).join('')}</div>`:'<div class="portal-empty"><h3>The queue is clear</h3><p>No open actions, decisions, or approvals are visible to this staff account.</p></div>'}</section>`;
+      } catch(error){loading?.classList.add('portal-hidden');errorBox?.classList.remove('portal-hidden');if(errorBox)errorBox.textContent=error.message??'The staff queue could not load.';}
+      document.querySelector('#sign-out')?.addEventListener('click',async()=>{await supabase.auth.signOut();window.location.replace('/portal/login');});
+    </script>
+  </body>
+</html>
