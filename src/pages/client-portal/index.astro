@@ -1,4 +1,6 @@
 ---
+import portalStyles from '../../../public/portal.css?raw';
+import clientPortalScript from '../../lib/client-portal-inline.js?raw';
 ---
 <html lang="en">
   <head>
@@ -7,6 +9,7 @@
     <meta name="robots" content="noindex,nofollow,noarchive" />
     <link rel="icon" type="image/webp" href="/assets/xgl-favicon.webp" />
     <link rel="stylesheet" href="/portal.css" />
+    <style is:inline set:html={portalStyles}></style>
     <title>Client Back Office | Expedition Growth Lab</title>
   </head>
   <body>
@@ -65,6 +68,6 @@
       </form>
     </dialog>
 
-    <script src="../../lib/client-portal.ts"></script>
+    <script is:inline type="module" set:html={clientPortalScript}></script>
   </body>
 </html>
